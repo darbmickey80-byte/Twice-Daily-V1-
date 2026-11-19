@@ -58,11 +58,11 @@
   },
   "pm": {
    "engine": "openai",
-   "voice": "nova"
+   "voice": "coral"
   }
  },
+ "deleted": [],
  "anthropicModel": "claude-haiku-5-5",
  "openaiTextModel": "auto",
- "openaiVoiceModel": "auto",
- "deleted": []
+ "openaiVoiceModel": "auto"
 }
