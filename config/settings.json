@@ -54,7 +54,7 @@
  "voices": {
   "am": {
    "engine": "openai",
-   "voice": "echo"
+   "voice": "fable"
   },
   "pm": {
    "engine": "openai",
