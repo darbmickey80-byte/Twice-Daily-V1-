@@ -17,7 +17,7 @@
 <style>
 :root{
   --bg:#EEF1F5; --surface:#FFFFFF; --surface2:#E4E9F0; --ink:#1B2333; --muted:#596377; --line:#D2D9E3;
-  --am:#2F6FB5; --pm:#9A6300; --danger:#B3261E; --on-accent:#FFFFFF; --accent:var(--am);
+  --am:#2F6FB5; --pm:#9A6300; --danger:#B3261E; --ok:#2E7D32; --on-accent:#FFFFFF; --accent:var(--am);
   --display:"Bricolage Grotesque", "Segoe UI", Roboto, system-ui, sans-serif;
   --body:"Atkinson Hyperlegible", Roboto, "Segoe UI", system-ui, sans-serif;
   color-scheme:light;
@@ -25,12 +25,12 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#10151F; --surface:#1A2130; --surface2:#242D3E; --ink:#E8ECF3; --muted:#9BA5B6; --line:#2E384A;
-    --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --on-accent:#10151F; color-scheme:dark;
+    --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --ok:#81C995; --on-accent:#10151F; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#10151F; --surface:#1A2130; --surface2:#242D3E; --ink:#E8ECF3; --muted:#9BA5B6; --line:#2E384A;
-  --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --on-accent:#10151F; color-scheme:dark;
+  --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --ok:#81C995; --on-accent:#10151F; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -161,7 +161,13 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
 .toast.show{opacity:1}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
 .card{background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:16px 18px; margin:18px 0 0}
-.card.setup{border-color:var(--accent); margin:0 0 16px}
+.conn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); background:var(--surface2); border-radius:14px; padding:4px 12px 4px 10px; font-size:14px; font-weight:700; color:var(--ink); margin:0 0 12px; min-height:30px}
+.conn.static{margin:4px 0 6px}
+.conn .dot{width:10px; height:10px; border-radius:5px; background:var(--muted)}
+.conn[data-state="ok"] .dot{background:var(--ok)}
+.conn[data-state="error"] .dot, .conn[data-state="none"] .dot{background:var(--danger)}
+.conn[data-state="checking"] .dot{background:var(--pm)}
+.connbox{border:1px solid var(--line); background:var(--surface); border-radius:18px; padding:12px 16px 4px}
 .runstate{font-size:15px; margin:4px 0 10px; min-height:1.5em}
 .runstate.err{color:var(--danger)}
 .runstate a{color:inherit}
@@ -172,7 +178,7 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
 .steps:empty{display:none}
 @keyframes pulse{50%{opacity:.45}}
 @media (prefers-reduced-motion: reduce){.steps span.cur{animation:none}}
-#runBtn2[disabled], #runBtn[disabled]{opacity:.5}
+#runBtn2.busy, #runBtn.busy{opacity:.6}
 </style>
 </head>
 <body>
@@ -188,13 +194,6 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
 <main>
   <!-- LISTEN -->
   <section class="view active" id="view-listen" aria-label="Listen">
-    <div class="card setup" id="setupCard" hidden>
-      <h3 style="margin-top:0">Connect to GitHub</h3>
-      <p class="note">Paste the access token you created so this app can run broadcasts and save your settings. It's stored only on this phone.</p>
-      <label class="field"><span>GitHub access token</span><input id="setupToken" type="password" autocomplete="off" placeholder="github_pat_..."></label>
-      <button class="btn primary" id="setupSave">Connect</button>
-      <p class="note" id="setupMsg" role="status"></p>
-    </div>
     <div class="hero" id="hero" data-slot="am">
       <div class="edition" id="edLabel">Your briefing</div>
       <div class="bigtime" id="edTime">6:00<small>AM</small></div>
@@ -215,6 +214,7 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
     <div class="status" id="status" role="status" aria-live="polite"></div>
 
     <div class="card" id="schedCard">
+      <button class="conn" id="connChip" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="connText">Checking connection</span></button>
       <div class="row" style="border:none; padding-top:0"><label class="name" for="schedToggle">Automatic broadcasts<span class="sub" id="schedSub"></span></label><input type="checkbox" class="switch" id="schedToggle" data-sched></div>
       <div class="runstate" id="runState" role="status" aria-live="polite"></div>
       <div class="steps" id="runSteps" aria-hidden="true"></div>
@@ -255,7 +255,21 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
 
   <!-- SETTINGS -->
   <section class="view" id="view-settings" aria-label="Settings">
-    <p class="note" id="settingsLock" hidden>Connect to GitHub on the Listen screen to change these settings.</p>
+    <h2 id="connHead">Connect to GitHub</h2>
+    <p class="note">Paste the access token you created so this app can run broadcasts and save your settings. It's stored only on this phone.</p>
+    <div class="connbox" id="connBox">
+      <div class="conn static" id="connChip2"><span class="dot" aria-hidden="true"></span><span id="connText2">Not connected</span></div>
+      <label class="field"><span>GitHub access token</span><input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+      <button class="btn primary small" id="connectBtn">Connect</button>
+      <p class="note" id="connMsg" role="status" aria-live="polite"></p>
+      <details>
+        <summary>Repository details</summary>
+        <p class="note">Filled in automatically from the app's address. Change these only if you move the app to a different repository.</p>
+        <label class="field"><span>GitHub user name</span><input id="ownerInput" autocomplete="off"></label>
+        <label class="field"><span>Repository name</span><input id="repoInput" autocomplete="off"></label>
+      </details>
+    </div>
+
     <h2>News sources</h2>
     <p class="note">Changes apply to the next broadcast. If an outlet only offers a headline, the app looks for the full story at other outlets and leaves it out if none has it.</p>
     <div id="sourceList"></div>
@@ -311,12 +325,6 @@ summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:poin
       <label class="field"><span>Claude model</span><input id="anthropicModel" autocomplete="off"></label>
     </details>
 
-    <h2>Connection</h2>
-    <label class="field"><span>GitHub access token</span><input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_..."></label>
-    <label class="field"><span>GitHub user name</span><input id="ownerInput" autocomplete="off"></label>
-    <label class="field"><span>Repository name</span><input id="repoInput" autocomplete="off"></label>
-    <p><button class="btn small" id="checkConn">Check connection</button></p>
-    <p class="note" id="connMsg" role="status" aria-live="polite"></p>
     <p style="margin-top:26px; color:var(--muted); font-size:14px">Twice Daily is prepared on GitHub from each outlet’s public feed and the full articles it links to, and links back to every story.</p>
   </section>
 </main>
@@ -390,6 +398,26 @@ const saveL = () => store.set("prefs", L);
 let CAT = {sources:[], topics:[], studioVoices:[]};
 let SS = null, ssSha = null, ssTimer = null, ssSaving = Promise.resolve(), ssDirty = false;
 const connected = () => !!(L.token && L.owner && L.repo);
+let connError = "", connChecked = false;
+function showView(name){
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x.dataset.view === name)));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + name));
+  if (name === "voices") loadVoices();
+  window.scrollTo(0, 0);
+}
+function needConnection(){
+  showView("settings");
+  $("#connMsg").textContent = connError ? "Problem: " + connError + "." : "";
+  setTimeout(() => $("#tokenInput").focus(), 300);
+  toast(connError ? "There's a problem with the GitHub connection. Details are in Settings." : "Connect to GitHub first: paste your access token in Settings.");
+}
+function renderConn(){
+  const state = !connected() ? "none" : connError ? "error" : connChecked ? "ok" : "checking";
+  const text = {none:"Not connected to GitHub", error:"GitHub connection problem", ok:"Connected to GitHub", checking:"Checking GitHub connection"}[state];
+  [["#connChip", "#connText"], ["#connChip2", "#connText2"]].forEach(([c, t]) => { $(c).dataset.state = state; $(t).textContent = text; });
+  $("#connChip").setAttribute("aria-label", text + (state === "ok" ? "" : ". Tap to open the connection settings."));
+}
+const ready = () => connected() && !!SS && !connError;
 
 async function gh(path, opts){
   opts = opts || {};
@@ -400,7 +428,9 @@ async function gh(path, opts){
   if (!res.ok){
     let msg = "GitHub error " + res.status;
     try{ const j = await res.json(); if (j.message) msg = j.message; }catch(e){}
-    const e = new Error(res.status === 401 ? "GitHub didn't accept the access token" : res.status === 404 ? "GitHub couldn't find the repository, or the token can't see it" : msg);
+    const e = new Error(res.status === 401 ? "GitHub didn't accept the access token (it may be mistyped or expired)"
+      : res.status === 403 ? "the access token doesn't have permission for this. It needs Contents and Actions set to Read and write"
+      : res.status === 404 ? "GitHub couldn't find the repository, or the token isn't allowed to see it" : msg);
     e.status = res.status; throw e;
   }
   return res.status === 204 ? null : res.json();
@@ -418,8 +448,9 @@ async function loadSettings(){
     let repoOk = false;
     if (e.status === 404){ try{ await gh(repoPath("")); repoOk = true; }catch(x){} }
     if (repoOk){ SS = {}; ssSha = null; }
-    else { setStatus("Couldn't load your settings: " + e.message + ".", true); return; }
+    else { connError = e.message; connChecked = true; renderAll(); return; }
   }
+  connError = ""; connChecked = true;
   SS = Object.assign({scheduler:true, timezone:"America/New_York", length:"full", summaries:true, keep:14, sources:{}, topics:{}, custom:["","",""], voices:{am:{engine:"openai", voice:"onyx"}, pm:{engine:"openai", voice:"nova"}}, deleted:[]}, SS || {});
   CAT.sources.forEach(s => { if (!(s.id in SS.sources)) SS.sources[s.id] = s.on; });
   CAT.topics.forEach(t => { if (!(t.id in SS.topics)) SS.topics[t.id] = t.on; });
@@ -651,7 +682,8 @@ const STEP_NAMES = [
 ];
 let runWatch = null, lastRunId = store.get("lastRunId", 0), expectRunSince = 0, branch = null;
 async function runNow(mode){
-  if (!connected()){ toast("Connect to GitHub first, on the Listen screen."); return; }
+  if (!ready()){ needConnection(); return; }
+  if ($("#runBtn").dataset.busy === "1"){ toast("A broadcast is already being prepared. Its progress shows under the player."); return; }
   if (SS) await flushSettings();
   try{
     if (!branch){ const r = await gh(repoPath("")); branch = r.default_branch || "main"; }
@@ -659,9 +691,9 @@ async function runNow(mode){
     expectRunSince = Date.now() - 5000;
     if (mode !== "publish"){ setRunState("Starting a new broadcast. This usually takes a few minutes.", []); setRunButtons(true); }
     pollSoon(4000);
-  }catch(e){ setRunState("Couldn't start the broadcast: " + e.message + ".", [], true); }
+  }catch(e){ setRunState("Couldn't start the broadcast: " + esc(e.message) + ".", [], true); if (e.status === 401 || e.status === 403){ connError = e.message; connChecked = true; renderConn(); } }
 }
-function setRunButtons(disabled){ $("#runBtn").disabled = disabled; $("#runBtn2").disabled = disabled; }
+function setRunButtons(busy){ [$("#runBtn"), $("#runBtn2")].forEach(b => { b.dataset.busy = busy ? "1" : "0"; b.classList.toggle("busy", !!busy); }); $("#runBtn2").textContent = busy ? "Preparing a broadcast…" : "Prepare a broadcast now"; }
 function setRunState(msg, steps, err){
   const el = $("#runState"); el.innerHTML = msg; el.classList.toggle("err", !!err);
   $("#runSteps").innerHTML = (steps || []).map(s => '<span class="' + s + '"></span>').join("");
@@ -698,7 +730,7 @@ async function checkRuns(){
       }
       lastRunId = active.id;
     } else {
-      setRunButtons(!connected());
+      setRunButtons(false);
       const latest = runs[0];
       if (expectRunSince && (!latest || new Date(latest.created_at) < expectRunSince) && Date.now() - expectRunSince < 90000){ next = 5000; }
       else {
@@ -717,7 +749,7 @@ async function checkRuns(){
     }
     store.set("lastRunId", lastRunId);
   }catch(e){
-    if (connected()) setRunState("Couldn't check on broadcasts: " + esc(e.message) + ".", [], true);
+    if (connected()){ setRunState("Couldn't check on broadcasts: " + esc(e.message) + ".", [], true); if (e.status === 401 || e.status === 403){ connError = e.message; connChecked = true; renderConn(); } }
     next = 120000;
   }
   if (document.visibilityState === "visible") pollSoon(next);
@@ -734,14 +766,14 @@ function scheduleSummary(){
 function epTitle(e){ const d = new Date(e.editionDate || e.createdAt); return WEEKDAYS[d.getDay()] + (e.slot === "am" ? " morning" : " afternoon") + " edition" + (e.refresh ? ", updated " + clock(new Date(e.createdAt)) : ""); }
 function epMinutes(e){ if (e.duration) return Math.max(1, Math.round(e.duration / 60)); const w = (e.segments || []).reduce((n, s) => n + (s.text || "").split(/\s+/).length, 0); return Math.max(1, Math.round(w / 160)); }
 function renderListen(){
-  $("#setupCard").hidden = connected();
+  renderConn();
   const hero = $("#hero");
   if (!current){
     hero.dataset.slot = new Date().getHours() < 15 ? "am" : "pm";
     $("#edLabel").textContent = "Twice Daily";
     $("#edTime").innerHTML = hero.dataset.slot === "am" ? "6:00<small>AM</small>" : "4:00<small>PM</small>";
     $("#nowTitle").textContent = "No broadcast published yet";
-    $("#nowSrc").textContent = connected() ? "Tap Run now to prepare one, or wait for the next automatic broadcast." : "Connect to GitHub above to get started.";
+    $("#nowSrc").textContent = connected() ? "Tap Run now to prepare one, or wait for the next automatic broadcast." : "Connect to GitHub in Settings to get started.";
     $("#track").innerHTML = ""; $("#posLabel").textContent = ""; $("#lenLabel").textContent = ""; $("#scrub").hidden = true;
     $("#storyList").innerHTML = '<li class="empty">Stories will appear here once a broadcast is published.</li>';
     renderPlayState(); return;
@@ -796,13 +828,13 @@ let confirmDel = null;
 function renderLibrary(){
   const list = $("#libList"), eps = index.filter(e => !hidden.has(e.id));
   $("#libNote").textContent = eps.length ? eps.length + " saved. Older episodes are removed automatically as new ones are published." : "";
-  $("#deleteAllBtn").hidden = !eps.length || !connected();
+  $("#deleteAllBtn").hidden = !eps.length;
   if (!eps.length){ list.innerHTML = '<p class="empty">Published broadcasts are saved here.</p>'; return; }
   list.innerHTML = eps.map(e => {
     const d = new Date(e.createdAt), isCur = current && current.id === e.id;
     return '<div class="ep ' + e.slot + (isCur ? " playing" : "") + '"><span class="dot ' + e.slot + '"></span><div class="info"><div class="t">' + esc(epTitle(e)) + '</div><div class="s">' + MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + (e.stories || "?") + " stories, " + epMinutes(e) + " min" + (e.audio ? "" : ", phone voice") + "</div></div>" +
       '<button class="play" data-label="Play ' + esc(epTitle(e)) + '" aria-label="' + (isCur && P.playing ? "Pause " : "Play ") + esc(epTitle(e)) + '" data-ep-play="' + e.id + '">' + (isCur && P.playing ? ICON.pause : ICON.play) + "</button>" +
-      (!connected() ? "" : confirmDel === e.id ? '<button class="btn danger small" data-ep-del="' + e.id + '">Delete</button>' : '<button class="play" aria-label="Delete ' + esc(epTitle(e)) + '" data-ep-ask="' + e.id + '">' + ICON.trash + "</button>") + "</div>";
+      (confirmDel === e.id ? '<button class="btn danger small" data-ep-del="' + e.id + '">Delete</button>' : '<button class="play" aria-label="Delete ' + esc(epTitle(e)) + '" data-ep-ask="' + e.id + '">' + ICON.trash + "</button>") + "</div>";
   }).join("");
 }
 let voiceTab = "studio", genderFilter = "all";
@@ -823,7 +855,7 @@ function renderVoices(){
   $("#engDevice").setAttribute("aria-pressed", String(voiceTab === "device")); $("#engStudio").setAttribute("aria-pressed", String(voiceTab === "studio"));
   document.querySelectorAll("#genderFilters .chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.g === genderFilter)));
   const list = $("#voiceList"), V = (SS && SS.voices) || {};
-  const picks = (attr, isOn) => ["am","pm"].map(sl => '<button class="pick ' + sl + '" aria-pressed="' + isOn(sl) + '" data-assign="' + sl + '" ' + attr + ' aria-label="Use for ' + slotLabel(sl) + '"' + (connected() ? "" : " disabled") + ">" + sl.toUpperCase() + "</button>").join("");
+  const picks = (attr, isOn) => ["am","pm"].map(sl => '<button class="pick ' + sl + '" aria-pressed="' + isOn(sl) + '" data-assign="' + sl + '" ' + attr + ' aria-label="Use for ' + slotLabel(sl) + '">' + sl.toUpperCase() + "</button>").join("");
   if (voiceTab === "studio"){
     $("#voiceNote").textContent = "Broadcast-quality voices, recorded on GitHub so they keep playing with your screen off. Tap AM or PM to choose the voice for each edition; it applies from the next broadcast.";
     list.innerHTML = CAT.studioVoices.filter(x => genderFilter === "all" || x.g === genderFilter).map(sv => {
@@ -842,33 +874,30 @@ function renderVoices(){
   }
 }
 function renderSettings(){
-  const locked = !connected() || !SS;
-  $("#settingsLock").hidden = !locked;
+  const locked = !ready();
   const S = SS || store.get("ss", null) || {sources:{}, topics:{}, custom:["","",""]};
-  const sw = (id, label, on, sub, attr) => '<div class="row"><label class="name" for="' + id + '">' + esc(label) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</label><input type="checkbox" class="switch" id="' + id + '" ' + attr + (on ? " checked" : "") + (locked ? " disabled" : "") + "></div>";
+  const sw = (id, label, on, sub, attr) => '<div class="row"><label class="name" for="' + id + '">' + esc(label) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</label><input type="checkbox" class="switch" id="' + id + '" ' + attr + (on ? " checked" : "") + "></div>";
   $("#sourceList").innerHTML = CAT.sources.map(s => sw("src-" + s.id, s.name, S.sources[s.id] != null ? S.sources[s.id] : s.on, s.local ? "Local" : "", 'data-src="' + s.id + '"')).join("");
   $("#topicList").innerHTML = CAT.topics.map(t => sw("top-" + t.id, t.name, S.topics[t.id] != null ? S.topics[t.id] : t.on, "", 'data-topic="' + t.id + '"')).join("");
-  (S.custom || ["","",""]).forEach((v, i) => { const el = $("#custom" + i); el.value = v; el.disabled = locked; });
-  const set = (sel, v) => { const el = $(sel); el.value = v; el.disabled = locked; };
+  (S.custom || ["","",""]).forEach((v, i) => { $("#custom" + i).value = v; });
+  const set = (sel, v) => { $(sel).value = v; };
   set("#lengthSel", S.length || "full"); set("#tzSel", S.timezone || "America/New_York"); set("#keepSel", String(S.keep || 14));
   set("#openaiTextModel", S.openaiTextModel && S.openaiTextModel !== "auto" ? S.openaiTextModel : ""); set("#openaiVoiceModel", S.openaiVoiceModel && S.openaiVoiceModel !== "auto" ? S.openaiVoiceModel : ""); set("#anthropicModel", S.anthropicModel || "claude-haiku-5-5");
-  $("#summaries").checked = S.summaries !== false; $("#summaries").disabled = locked;
-  document.querySelectorAll("[data-sched]").forEach(el => { el.checked = S.scheduler !== false; el.disabled = locked; });
+  $("#summaries").checked = S.summaries !== false;
+  document.querySelectorAll("[data-sched]").forEach(el => { el.checked = S.scheduler !== false; });
   $("#schedSub").textContent = (S.scheduler !== false) ? "On: prepared at 5 AM and 3 PM, ready by 6 AM and 4 PM." : "Off: broadcasts only run when you tap Run now.";
   $("#keepAwake").checked = L.keepAwake;
   $("#tokenInput").value = L.token; $("#ownerInput").value = L.owner; $("#repoInput").value = L.repo;
+  if (connError) $("#connMsg").textContent = "Problem: " + connError + ".";
+  renderConn();
   $("#secretsLink").href = "https://github.com/" + encodeURIComponent(L.owner || "") + "/" + encodeURIComponent(L.repo || "") + "/settings/secrets/actions";
-  if (!connected()) setRunButtons(true);
 }
 function renderAll(){ renderSettings(); renderVoices(); renderVoiceCards(); renderListen(); renderLibrary(); }
 
 /* ---------- Events ---------- */
 document.querySelector(".tabs").addEventListener("click", e => {
   const b = e.target.closest("button[data-view]"); if (!b) return;
-  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
-  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + b.dataset.view));
-  if (b.dataset.view === "voices") loadVoices();
-  window.scrollTo(0, 0);
+  showView(b.dataset.view);
 });
 $("#themeBtn").onclick = () => { L.theme = isDark() ? "light" : "dark"; saveL(); applyTheme(); };
 document.querySelectorAll("[data-theme-opt]").forEach(b => b.onclick = () => { L.theme = b.dataset.themeOpt; saveL(); applyTheme(); });
@@ -894,7 +923,7 @@ $("#deleteAllBtn").onclick = e => {
   delAllArmed = false; e.target.textContent = "Delete all episodes"; deleteEpisodes(eps.map(x => x.id));
 };
 async function deleteEpisodes(ids){
-  if (!connected() || !SS) return;
+  if (!ready()){ needConnection(); return; }
   ids.forEach(id => hidden.add(id)); store.set("hidden", [...hidden]);
   if (current && ids.includes(current.id)){ pause(); current = null; const next = index.find(x => !hidden.has(x.id)); if (next) await openEpisode(next, false); else renderListen(); }
   renderLibrary();
@@ -910,6 +939,7 @@ $("#voiceList").addEventListener("click", e => {
   const ad = e.target.closest("[data-aud-device]"), as = e.target.closest("[data-aud-studio]"), pk = e.target.closest("[data-assign]");
   if (ad) audition("device", ad.dataset.audDevice, ad);
   else if (as) audition("studio", as.dataset.audStudio, as);
+  else if (pk && !ready()) needConnection();
   else if (pk && SS){
     const sl = pk.dataset.assign;
     SS.voices = SS.voices || {};
@@ -918,9 +948,11 @@ $("#voiceList").addEventListener("click", e => {
     toast(voiceName(SS.voices[sl]) + " will read the " + slotLabel(sl) + " edition, starting with the next broadcast");
   }
 });
+const SHARED_FIELDS = /^(lengthSel|tzSel|keepSel|summaries|custom\d|openaiTextModel|openaiVoiceModel|anthropicModel)$/;
 document.addEventListener("change", e => {
   const t = e.target;
   if (t.id === "keepAwake"){ L.keepAwake = t.checked; saveL(); return; }
+  if (!ready() && (t.dataset.src || t.dataset.topic || t.dataset.sched !== undefined || SHARED_FIELDS.test(t.id))){ renderSettings(); needConnection(); return; }
   if (!SS) return;
   if (t.dataset.src){ SS.sources[t.dataset.src] = t.checked; saveSettings(); toast(t.checked ? "Added to the next broadcast" : "Removed from the next broadcast"); }
   else if (t.dataset.topic){ SS.topics[t.dataset.topic] = t.checked; saveSettings(); }
@@ -933,25 +965,29 @@ document.addEventListener("change", e => {
 document.addEventListener("input", e => {
   const t = e.target, m = /^custom(\d)$/.exec(t.id);
   if (t.id === "tokenInput" || t.id === "ownerInput" || t.id === "repoInput"){ L.token = $("#tokenInput").value.trim(); L.owner = $("#ownerInput").value.trim(); L.repo = $("#repoInput").value.trim(); saveL(); return; }
-  if (!SS) return;
+  if (!ready()){ if (SHARED_FIELDS.test(t.id)){ renderSettings(); needConnection(); } return; }
   if (m){ SS.custom[Number(m[1])] = t.value; saveSettings(); }
   else if (t.id === "openaiTextModel"){ SS.openaiTextModel = t.value.trim() || "auto"; saveSettings(); }
   else if (t.id === "openaiVoiceModel"){ SS.openaiVoiceModel = t.value.trim() || "auto"; saveSettings(); }
   else if (t.id === "anthropicModel"){ SS.anthropicModel = t.value.trim() || "claude-haiku-5-5"; saveSettings(); }
 });
 async function connect(token, msgEl){
-  L.token = token.trim(); saveL();
+  L.token = token.trim().replace(/\s+/g, ""); saveL();
+  if (!L.token){ msgEl.textContent = "Paste your access token first."; return; }
+  connError = ""; connChecked = false; renderConn();
   msgEl.textContent = "Checking";
   try{
     const r = await gh(repoPath(""));
     branch = r.default_branch || "main";
-    if (!r.permissions || !r.permissions.push){ msgEl.textContent = "Connected, but this token can't save changes. Give it read and write access to Contents and Actions."; }
-    else msgEl.textContent = "Connected to " + r.full_name + ".";
-    await loadSettings(); renderAll(); checkRuns();
-  }catch(e){ msgEl.textContent = e.message + ". Check the token and its repository access."; }
+    await gh(repoPath("/actions/workflows/" + WORKFLOW + "/runs?per_page=1"));
+    await loadSettings();
+    if (connError) throw new Error(connError);
+    msgEl.textContent = "Connected to " + r.full_name + ".";
+    connChecked = true; renderAll(); checkRuns(); toast("Connected. All buttons are ready.");
+  }catch(e){ connError = e.message; connChecked = true; msgEl.textContent = "Problem: " + e.message + "."; renderAll(); }
 }
-$("#setupSave").onclick = () => connect($("#setupToken").value, $("#setupMsg"));
-$("#checkConn").onclick = () => connect($("#tokenInput").value, $("#connMsg"));
+$("#connectBtn").onclick = () => connect($("#tokenInput").value, $("#connMsg"));
+$("#connChip").onclick = () => { if (connected() && !connError && connChecked) toast("Connected to GitHub as " + L.owner + "."); else needConnection(); };
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible"){ loadIndex(true); checkRuns(); } else clearTimeout(runWatch); });
 
 /* ---------- Start (opening the app only loads what's published; it never starts a broadcast) ---------- */
