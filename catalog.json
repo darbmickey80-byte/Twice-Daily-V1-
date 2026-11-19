@@ -1,0 +1,1102 @@
+{
+ "sources": [
+  {
+   "id": "npr",
+   "name": "NPR",
+   "on": true,
+   "domain": "npr.org",
+   "feeds": [
+    {
+     "u": "https://feeds.npr.org/1001/rss.xml"
+    },
+    {
+     "u": "https://feeds.npr.org/1004/rss.xml",
+     "t": "world"
+    },
+    {
+     "u": "https://feeds.npr.org/1014/rss.xml",
+     "t": "politics"
+    },
+    {
+     "u": "https://feeds.npr.org/1019/rss.xml",
+     "t": "scitech"
+    },
+    {
+     "u": "https://feeds.npr.org/1007/rss.xml",
+     "t": "scitech"
+    },
+    {
+     "u": "https://feeds.npr.org/1006/rss.xml",
+     "t": "business"
+    }
+   ]
+  },
+  {
+   "id": "usatoday",
+   "name": "USA Today",
+   "on": true,
+   "domain": "usatoday.com",
+   "feeds": []
+  },
+  {
+   "id": "reuters",
+   "name": "Reuters",
+   "on": true,
+   "domain": "reuters.com",
+   "feeds": []
+  },
+  {
+   "id": "nbc",
+   "name": "NBC News",
+   "on": true,
+   "domain": "nbcnews.com",
+   "feeds": [
+    {
+     "u": "https://feeds.nbcnews.com/nbcnews/public/news"
+    }
+   ]
+  },
+  {
+   "id": "abc",
+   "name": "ABC News",
+   "on": true,
+   "domain": "abcnews.go.com",
+   "feeds": [
+    {
+     "u": "https://abcnews.go.com/abcnews/topstories"
+    },
+    {
+     "u": "https://abcnews.go.com/abcnews/politicsheadlines",
+     "t": "politics"
+    },
+    {
+     "u": "https://abcnews.go.com/abcnews/internationalheadlines",
+     "t": "world"
+    },
+    {
+     "u": "https://abcnews.go.com/abcnews/technologyheadlines",
+     "t": "scitech"
+    },
+    {
+     "u": "https://abcnews.go.com/abcnews/moneyheadlines",
+     "t": "business"
+    }
+   ]
+  },
+  {
+   "id": "cnet",
+   "name": "CNET",
+   "on": true,
+   "domain": "cnet.com",
+   "hint": "scitech",
+   "feeds": [
+    {
+     "u": "https://www.cnet.com/rss/news/"
+    }
+   ]
+  },
+  {
+   "id": "fox8",
+   "name": "Fox 8 Cleveland",
+   "on": true,
+   "domain": "fox8.com",
+   "local": true,
+   "feeds": [
+    {
+     "u": "https://fox8.com/feed/"
+    }
+   ]
+  },
+  {
+   "id": "ap",
+   "name": "Associated Press",
+   "on": false,
+   "domain": "apnews.com",
+   "feeds": []
+  },
+  {
+   "id": "cnn",
+   "name": "CNN",
+   "on": false,
+   "domain": "cnn.com",
+   "feeds": []
+  },
+  {
+   "id": "cbs",
+   "name": "CBS News",
+   "on": false,
+   "domain": "cbsnews.com",
+   "feeds": [
+    {
+     "u": "https://www.cbsnews.com/latest/rss/main"
+    }
+   ]
+  },
+  {
+   "id": "foxnews",
+   "name": "Fox News",
+   "on": false,
+   "domain": "foxnews.com",
+   "feeds": [
+    {
+     "u": "https://moxie.foxnews.com/google-publisher/latest.xml"
+    }
+   ]
+  },
+  {
+   "id": "pbs",
+   "name": "PBS NewsHour",
+   "on": false,
+   "domain": "pbs.org",
+   "feeds": [
+    {
+     "u": "https://www.pbs.org/newshour/feeds/rss/headlines"
+    }
+   ]
+  },
+  {
+   "id": "bbc",
+   "name": "BBC News",
+   "on": false,
+   "domain": "bbc.com",
+   "feeds": [
+    {
+     "u": "https://feeds.bbci.co.uk/news/rss.xml"
+    },
+    {
+     "u": "https://feeds.bbci.co.uk/news/world/rss.xml",
+     "t": "world"
+    }
+   ]
+  },
+  {
+   "id": "cnbc",
+   "name": "CNBC",
+   "on": false,
+   "domain": "cnbc.com",
+   "hint": "business",
+   "feeds": [
+    {
+     "u": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+    }
+   ]
+  },
+  {
+   "id": "verge",
+   "name": "The Verge",
+   "on": false,
+   "domain": "theverge.com",
+   "hint": "scitech",
+   "feeds": [
+    {
+     "u": "https://www.theverge.com/rss/index.xml"
+    }
+   ]
+  },
+  {
+   "id": "ars",
+   "name": "Ars Technica",
+   "on": false,
+   "domain": "arstechnica.com",
+   "hint": "scitech",
+   "feeds": [
+    {
+     "u": "https://feeds.arstechnica.com/arstechnica/index"
+    }
+   ]
+  },
+  {
+   "id": "cleveland",
+   "name": "Cleveland.com",
+   "on": false,
+   "domain": "cleveland.com",
+   "local": true,
+   "feeds": []
+  },
+  {
+   "id": "wkyc",
+   "name": "WKYC 3News",
+   "on": false,
+   "domain": "wkyc.com",
+   "local": true,
+   "feeds": []
+  },
+  {
+   "id": "news5",
+   "name": "News 5 Cleveland",
+   "on": false,
+   "domain": "news5cleveland.com",
+   "local": true,
+   "feeds": []
+  }
+ ],
+ "topics": [
+  {
+   "id": "us",
+   "name": "U.S. news",
+   "say": "news from around the country",
+   "on": true,
+   "kw": [
+    "U.S.",
+    "nationwide",
+    "Americans",
+    "federal",
+    "FEMA",
+    "National Guard",
+    "state officials"
+   ]
+  },
+  {
+   "id": "world",
+   "name": "World news",
+   "say": "world news",
+   "on": true,
+   "kw": [
+    "Ukraine",
+    "Ukrainian",
+    "Russia",
+    "Russian",
+    "Putin",
+    "Zelensky",
+    "China",
+    "Chinese",
+    "Beijing",
+    "Taiwan",
+    "Israel",
+    "Israeli",
+    "Gaza",
+    "Hamas",
+    "Hezbollah",
+    "Iran",
+    "Iranian",
+    "Lebanon",
+    "Syria",
+    "Yemen",
+    "Saudi",
+    "Europe",
+    "European",
+    "EU",
+    "NATO",
+    "United Nations",
+    "U.N.",
+    "Britain",
+    "British",
+    "U.K.",
+    "London",
+    "France",
+    "French",
+    "Paris",
+    "Germany",
+    "German",
+    "Berlin",
+    "Italy",
+    "Spain",
+    "Poland",
+    "Mexico",
+    "Mexican",
+    "Canada",
+    "Canadian",
+    "India",
+    "Indian",
+    "Pakistan",
+    "Japan",
+    "Japanese",
+    "Korea",
+    "Korean",
+    "Pyongyang",
+    "Venezuela",
+    "Brazil",
+    "Argentina",
+    "Colombia",
+    "Cuba",
+    "Haiti",
+    "Africa",
+    "African",
+    "Nigeria",
+    "Sudan",
+    "Egypt",
+    "Turkey",
+    "Australia",
+    "Philippines",
+    "Vatican",
+    "pope",
+    "prime minister",
+    "foreign minister",
+    "ceasefire",
+    "refugees",
+    "overseas",
+    "abroad"
+   ]
+  },
+  {
+   "id": "politics",
+   "name": "Politics",
+   "say": "politics",
+   "on": true,
+   "kw": [
+    "Trump",
+    "Vance",
+    "Biden",
+    "Harris",
+    "Congress",
+    "congressional",
+    "Senate",
+    "senator",
+    "House Speaker",
+    "House Republicans",
+    "House Democrats",
+    "Republican",
+    "Republicans",
+    "Democrat",
+    "Democrats",
+    "Democratic",
+    "GOP",
+    "White House",
+    "Capitol",
+    "lawmakers",
+    "legislation",
+    "bill",
+    "election",
+    "elections",
+    "campaign",
+    "midterm",
+    "midterms",
+    "primary",
+    "ballot",
+    "voters",
+    "polls",
+    "governor",
+    "Supreme Court",
+    "justices",
+    "executive order",
+    "administration",
+    "Cabinet",
+    "impeach",
+    "shutdown",
+    "filibuster",
+    "DOGE",
+    "Pentagon chief",
+    "attorney general",
+    "secretary of state",
+    "partisan",
+    "bipartisan"
+   ]
+  },
+  {
+   "id": "scitech",
+   "name": "Science, technology and AI",
+   "say": "science, technology and A.I.",
+   "on": true,
+   "kw": [
+    "AI",
+    "A.I.",
+    "artificial intelligence",
+    "chatbot",
+    "ChatGPT",
+    "OpenAI",
+    "Anthropic",
+    "Claude",
+    "Gemini",
+    "machine learning",
+    "Google",
+    "Apple",
+    "iPhone",
+    "iPad",
+    "Mac",
+    "Android",
+    "Pixel",
+    "Samsung",
+    "Microsoft",
+    "Windows",
+    "Meta",
+    "Facebook",
+    "Instagram",
+    "WhatsApp",
+    "TikTok",
+    "X.com",
+    "Musk",
+    "Nvidia",
+    "chip",
+    "chips",
+    "semiconductor",
+    "software",
+    "app",
+    "apps",
+    "smartphone",
+    "laptop",
+    "gadget",
+    "streaming device",
+    "tech",
+    "technology",
+    "cyber",
+    "cyberattack",
+    "hack",
+    "hackers",
+    "data breach",
+    "privacy",
+    "robot",
+    "robotics",
+    "quantum",
+    "scientists",
+    "researchers",
+    "study",
+    "research",
+    "physics",
+    "biology",
+    "astronomers",
+    "NASA",
+    "SpaceX",
+    "rocket",
+    "telescope",
+    "satellite",
+    "Amazon Web Services",
+    "cloud computing",
+    "Wi-Fi",
+    "5G",
+    "broadband"
+   ]
+  },
+  {
+   "id": "local",
+   "name": "Local news (Northeast Ohio)",
+   "say": "local news from Northeast Ohio",
+   "on": true,
+   "kw": [
+    "Cleveland",
+    "Ohio",
+    "Ohioans",
+    "Akron",
+    "Canton",
+    "Youngstown",
+    "Cuyahoga",
+    "Summit County",
+    "Lake County",
+    "Geauga",
+    "Lorain",
+    "Medina",
+    "Portage County",
+    "Ashtabula",
+    "Stark County",
+    "Northeast Ohio",
+    "Parma",
+    "Mentor",
+    "Euclid",
+    "Lakewood",
+    "Strongsville",
+    "Westlake",
+    "Solon",
+    "Painesville",
+    "Willoughby",
+    "Kent",
+    "Elyria",
+    "Sandusky",
+    "Columbus",
+    "DeWine",
+    "Lake Erie",
+    "RTA",
+    "Browns",
+    "Guardians",
+    "Cavaliers",
+    "Cavs"
+   ]
+  },
+  {
+   "id": "business",
+   "name": "Business",
+   "say": "business news",
+   "on": true,
+   "kw": [
+    "stocks",
+    "stock market",
+    "Wall Street",
+    "Dow",
+    "S&P 500",
+    "Nasdaq",
+    "shares",
+    "investors",
+    "earnings",
+    "revenue",
+    "profit",
+    "CEO",
+    "company",
+    "companies",
+    "corporate",
+    "Federal Reserve",
+    "interest rates",
+    "rate cut",
+    "inflation",
+    "economy",
+    "economic",
+    "economists",
+    "GDP",
+    "recession",
+    "jobs report",
+    "unemployment",
+    "hiring",
+    "layoffs",
+    "tariff",
+    "tariffs",
+    "trade deal",
+    "exports",
+    "imports",
+    "retail",
+    "retailers",
+    "sales",
+    "prices",
+    "merger",
+    "acquisition",
+    "IPO",
+    "bankruptcy",
+    "bank",
+    "banks",
+    "oil prices",
+    "Amazon",
+    "Walmart",
+    "Target",
+    "Boeing",
+    "startup",
+    "billion",
+    "million"
+   ]
+  },
+  {
+   "id": "money",
+   "name": "Personal finance",
+   "say": "personal finance",
+   "on": false,
+   "kw": [
+    "Social Security",
+    "taxes",
+    "tax refund",
+    "IRS",
+    "401(k)",
+    "retirement",
+    "savings",
+    "credit card",
+    "credit score",
+    "mortgage rates",
+    "student loans",
+    "budget",
+    "inflation",
+    "cost of living",
+    "Medicare enrollment",
+    "open enrollment"
+   ]
+  },
+  {
+   "id": "realestate",
+   "name": "Real estate",
+   "say": "real estate",
+   "on": false,
+   "kw": [
+    "real estate",
+    "housing market",
+    "home prices",
+    "home sales",
+    "mortgage",
+    "mortgages",
+    "rent",
+    "renters",
+    "landlord",
+    "commercial real estate",
+    "office space",
+    "shopping center",
+    "retail space",
+    "REIT",
+    "developer",
+    "construction",
+    "zoning",
+    "property"
+   ]
+  },
+  {
+   "id": "health",
+   "name": "Health",
+   "say": "health news",
+   "on": false,
+   "kw": [
+    "health",
+    "CDC",
+    "FDA",
+    "NIH",
+    "vaccine",
+    "vaccines",
+    "virus",
+    "flu",
+    "COVID",
+    "measles",
+    "outbreak",
+    "cancer",
+    "heart",
+    "hospital",
+    "hospitals",
+    "doctors",
+    "patients",
+    "medical",
+    "medicine",
+    "drug",
+    "drugs",
+    "Medicaid",
+    "Medicare",
+    "mental health",
+    "obesity",
+    "diabetes",
+    "Ozempic",
+    "RFK Jr.",
+    "Kennedy"
+   ]
+  },
+  {
+   "id": "climate",
+   "name": "Climate and environment",
+   "say": "climate and the environment",
+   "on": false,
+   "kw": [
+    "climate",
+    "climate change",
+    "global warming",
+    "emissions",
+    "carbon",
+    "renewable",
+    "solar",
+    "wind power",
+    "EPA",
+    "environment",
+    "environmental",
+    "pollution",
+    "drought",
+    "wildfire",
+    "wildfires",
+    "conservation",
+    "endangered"
+   ]
+  },
+  {
+   "id": "weather",
+   "name": "Weather",
+   "say": "weather",
+   "on": false,
+   "kw": [
+    "weather",
+    "forecast",
+    "storm",
+    "storms",
+    "snow",
+    "snowfall",
+    "lake-effect",
+    "rain",
+    "flooding",
+    "flood",
+    "tornado",
+    "hurricane",
+    "tropical storm",
+    "heat wave",
+    "cold snap",
+    "winter storm",
+    "blizzard",
+    "temperatures",
+    "National Weather Service"
+   ]
+  },
+  {
+   "id": "crime",
+   "name": "Crime and justice",
+   "say": "crime and justice",
+   "on": false,
+   "kw": [
+    "police",
+    "officer",
+    "officers",
+    "arrested",
+    "arrest",
+    "shooting",
+    "shot",
+    "killed",
+    "murder",
+    "homicide",
+    "charged",
+    "charges",
+    "indicted",
+    "indictment",
+    "trial",
+    "jury",
+    "verdict",
+    "sentenced",
+    "prison",
+    "court",
+    "judge",
+    "lawsuit",
+    "sued",
+    "FBI",
+    "prosecutors",
+    "investigation",
+    "fraud"
+   ]
+  },
+  {
+   "id": "military",
+   "name": "Military and defense",
+   "say": "military and defense",
+   "on": false,
+   "kw": [
+    "military",
+    "Pentagon",
+    "troops",
+    "Army",
+    "Navy",
+    "Air Force",
+    "Marines",
+    "soldiers",
+    "veterans",
+    "defense",
+    "missile",
+    "missiles",
+    "drone",
+    "drones",
+    "airstrike",
+    "weapons"
+   ]
+  },
+  {
+   "id": "sports",
+   "name": "Sports",
+   "say": "sports",
+   "on": false,
+   "kw": [
+    "NFL",
+    "NBA",
+    "MLB",
+    "NHL",
+    "WNBA",
+    "NCAA",
+    "MLS",
+    "game",
+    "games",
+    "season",
+    "coach",
+    "quarterback",
+    "playoffs",
+    "playoff",
+    "championship",
+    "tournament",
+    "Super Bowl",
+    "World Series",
+    "Olympics",
+    "soccer",
+    "golf",
+    "tennis",
+    "Ohio State",
+    "Buckeyes",
+    "Browns",
+    "Guardians",
+    "Cavaliers",
+    "Cavs",
+    "touchdown",
+    "score"
+   ]
+  },
+  {
+   "id": "entertainment",
+   "name": "Entertainment",
+   "say": "entertainment",
+   "on": false,
+   "kw": [
+    "movie",
+    "movies",
+    "film",
+    "Hollywood",
+    "actor",
+    "actress",
+    "singer",
+    "album",
+    "concert",
+    "tour",
+    "Netflix",
+    "Disney",
+    "HBO",
+    "streaming",
+    "TV series",
+    "series",
+    "show",
+    "Oscar",
+    "Oscars",
+    "Grammy",
+    "Emmy",
+    "celebrity",
+    "box office",
+    "Taylor Swift",
+    "Broadway",
+    "music"
+   ]
+  },
+  {
+   "id": "education",
+   "name": "Education",
+   "say": "education",
+   "on": false,
+   "kw": [
+    "school",
+    "schools",
+    "students",
+    "teachers",
+    "school district",
+    "university",
+    "universities",
+    "college",
+    "colleges",
+    "campus",
+    "education",
+    "tuition",
+    "graduation"
+   ]
+  },
+  {
+   "id": "autos",
+   "name": "Cars and EVs",
+   "say": "cars and electric vehicles",
+   "on": false,
+   "kw": [
+    "car",
+    "cars",
+    "automaker",
+    "automakers",
+    "Ford",
+    "GM",
+    "General Motors",
+    "Stellantis",
+    "Toyota",
+    "Honda",
+    "Tesla",
+    "EV",
+    "EVs",
+    "electric vehicle",
+    "electric vehicles",
+    "recall",
+    "vehicle",
+    "vehicles",
+    "gas prices",
+    "dealership"
+   ]
+  },
+  {
+   "id": "travel",
+   "name": "Travel",
+   "say": "travel",
+   "on": false,
+   "kw": [
+    "airline",
+    "airlines",
+    "flight",
+    "flights",
+    "airport",
+    "airports",
+    "FAA",
+    "TSA",
+    "travel",
+    "travelers",
+    "holiday travel",
+    "cruise",
+    "hotel",
+    "passengers",
+    "Amtrak"
+   ]
+  },
+  {
+   "id": "space",
+   "name": "Space",
+   "say": "space news",
+   "on": false,
+   "kw": [
+    "NASA",
+    "SpaceX",
+    "rocket",
+    "launch",
+    "astronaut",
+    "astronauts",
+    "moon",
+    "lunar",
+    "Mars",
+    "space station",
+    "telescope",
+    "asteroid",
+    "Artemis",
+    "Blue Origin",
+    "orbit",
+    "galaxy"
+   ]
+  }
+ ],
+ "backup": [
+  {
+   "id": "b-npr",
+   "name": "NPR",
+   "feeds": [
+    "https://feeds.npr.org/1001/rss.xml"
+   ]
+  },
+  {
+   "id": "b-pbs",
+   "name": "PBS NewsHour",
+   "feeds": [
+    "https://www.pbs.org/newshour/feeds/rss/headlines"
+   ]
+  },
+  {
+   "id": "b-cbs",
+   "name": "CBS News",
+   "feeds": [
+    "https://www.cbsnews.com/latest/rss/main"
+   ]
+  },
+  {
+   "id": "b-abc",
+   "name": "ABC News",
+   "feeds": [
+    "https://abcnews.go.com/abcnews/topstories"
+   ]
+  },
+  {
+   "id": "b-nbc",
+   "name": "NBC News",
+   "feeds": [
+    "https://feeds.nbcnews.com/nbcnews/public/news"
+   ]
+  },
+  {
+   "id": "b-bbc",
+   "name": "BBC News",
+   "feeds": [
+    "https://feeds.bbci.co.uk/news/rss.xml",
+    "https://feeds.bbci.co.uk/news/world/rss.xml"
+   ]
+  },
+  {
+   "id": "b-guardian",
+   "name": "The Guardian",
+   "feeds": [
+    "https://www.theguardian.com/us-news/rss",
+    "https://www.theguardian.com/world/rss"
+   ]
+  },
+  {
+   "id": "b-aljazeera",
+   "name": "Al Jazeera",
+   "feeds": [
+    "https://www.aljazeera.com/xml/rss/all.xml"
+   ]
+  },
+  {
+   "id": "b-foxnews",
+   "name": "Fox News",
+   "feeds": [
+    "https://moxie.foxnews.com/google-publisher/latest.xml"
+   ]
+  },
+  {
+   "id": "b-cnbc",
+   "name": "CNBC",
+   "feeds": [
+    "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+   ]
+  },
+  {
+   "id": "b-thehill",
+   "name": "The Hill",
+   "feeds": [
+    "https://thehill.com/feed/"
+   ]
+  },
+  {
+   "id": "b-ars",
+   "name": "Ars Technica",
+   "feeds": [
+    "https://feeds.arstechnica.com/arstechnica/index"
+   ]
+  },
+  {
+   "id": "b-verge",
+   "name": "The Verge",
+   "feeds": [
+    "https://www.theverge.com/rss/index.xml"
+   ]
+  },
+  {
+   "id": "b-fox8",
+   "name": "Fox 8 Cleveland",
+   "feeds": [
+    "https://fox8.com/feed/"
+   ]
+  },
+  {
+   "id": "b-ohiocj",
+   "name": "Ohio Capital Journal",
+   "feeds": [
+    "https://ohiocapitaljournal.com/feed/"
+   ]
+  },
+  {
+   "id": "b-signal",
+   "name": "Signal Cleveland",
+   "feeds": [
+    "https://signalcleveland.org/feed/"
+   ]
+  }
+ ],
+ "studioVoices": [
+  {
+   "id": "onyx",
+   "g": "Male",
+   "d": "Deep and authoritative"
+  },
+  {
+   "id": "ash",
+   "g": "Male",
+   "d": "Clear and confident"
+  },
+  {
+   "id": "echo",
+   "g": "Male",
+   "d": "Smooth and steady"
+  },
+  {
+   "id": "ballad",
+   "g": "Male",
+   "d": "Warm and gentle"
+  },
+  {
+   "id": "verse",
+   "g": "Male",
+   "d": "Natural and versatile"
+  },
+  {
+   "id": "fable",
+   "g": "Male",
+   "d": "British and expressive"
+  },
+  {
+   "id": "nova",
+   "g": "Female",
+   "d": "Bright and crisp"
+  },
+  {
+   "id": "coral",
+   "g": "Female",
+   "d": "Friendly and upbeat"
+  },
+  {
+   "id": "sage",
+   "g": "Female",
+   "d": "Calm and measured"
+  },
+  {
+   "id": "shimmer",
+   "g": "Female",
+   "d": "Soft and clear"
+  },
+  {
+   "id": "alloy",
+   "g": "Neutral",
+   "d": "Balanced and even"
+  }
+ ]
+}

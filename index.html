@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B2333">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Twice Daily</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --surface2:#E4E9F0; --ink:#1B2333; --muted:#596377; --line:#D2D9E3;
+  --am:#2F6FB5; --pm:#9A6300; --danger:#B3261E; --on-accent:#FFFFFF; --accent:var(--am);
+  --display:"Bricolage Grotesque", "Segoe UI", Roboto, system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", Roboto, "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151F; --surface:#1A2130; --surface2:#242D3E; --ink:#E8ECF3; --muted:#9BA5B6; --line:#2E384A;
+    --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --on-accent:#10151F; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151F; --surface:#1A2130; --surface2:#242D3E; --ink:#E8ECF3; --muted:#9BA5B6; --line:#2E384A;
+  --am:#7FB3EE; --pm:#E6A944; --danger:#F2B8B5; --on-accent:#10151F; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.5; -webkit-tap-highlight-color:transparent}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--bg)}
+button,input,select{font:inherit; color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:8px}
+svg{display:block}
+
+.top{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--bg)}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:800; font-size:21px; letter-spacing:-0.01em; margin-right:auto}
+.iconbtn{display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:44px; height:44px; padding:0 12px; border-radius:22px; border:1px solid var(--line); background:var(--surface); font-weight:700; font-size:15px}
+.iconbtn svg{width:20px; height:20px}
+.iconbtn.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.iconbtn.spin svg{animation:none}}
+
+main{max-width:640px; margin:0 auto; padding:0 16px calc(96px + env(safe-area-inset-bottom,0px))}
+.view{display:none}
+.view.active{display:block}
+h2{font-family:var(--display); font-weight:700; font-size:20px; margin:28px 0 10px; letter-spacing:-0.01em}
+h3{font-family:var(--display); font-weight:700; font-size:17px; margin:22px 0 8px}
+p.note{color:var(--muted); font-size:15px; margin:6px 0 12px}
+
+/* Hero: the edition clock */
+.hero{--accent:var(--am); background:color-mix(in srgb, var(--accent) 11%, var(--surface)); border:1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); border-radius:28px; padding:20px 20px 18px}
+.hero[data-slot="pm"]{--accent:var(--pm)}
+.edition{font-weight:700; color:var(--muted); font-size:15px}
+.bigtime{font-family:var(--display); font-weight:800; font-size:clamp(64px, 21vw, 104px); line-height:0.9; letter-spacing:-0.045em; color:var(--accent); margin:6px 0 14px; font-variant-numeric:tabular-nums}
+.bigtime small{font-size:0.36em; letter-spacing:-0.01em; margin-left:6px}
+.nowtitle{font-family:var(--display); font-weight:700; font-size:20px; line-height:1.25; min-height:2.5em}
+.nowsrc{color:var(--muted); font-size:15px; margin-top:4px; min-height:1.5em}
+.track{display:flex; gap:3px; margin:16px 0 4px; height:6px}
+.track span{flex:1; border-radius:3px; background:color-mix(in srgb, var(--accent) 22%, transparent)}
+.track span.done{background:color-mix(in srgb, var(--accent) 60%, transparent)}
+.track span.cur{background:var(--accent)}
+#scrub{width:100%; margin:10px 0 2px; accent-color:var(--accent); height:28px}
+#scrub[hidden]{display:none}
+.trackmeta{display:flex; justify-content:space-between; color:var(--muted); font-size:13px}
+.controls{display:flex; align-items:center; justify-content:space-between; margin:14px 0 6px}
+.ctl{width:52px; height:52px; border-radius:26px; border:none; background:transparent; display:flex; align-items:center; justify-content:center; position:relative}
+.ctl svg{width:28px; height:28px}
+.ctl .lbl{position:absolute; bottom:-2px; font-size:11px; font-weight:700; color:var(--muted)}
+.ctl.main{width:76px; height:76px; border-radius:38px; background:var(--accent); color:var(--on-accent)}
+.ctl.main svg{width:34px; height:34px}
+.ctl:disabled{opacity:0.35}
+.speeds{display:flex; gap:4px; justify-content:space-between; margin-top:10px}
+.speeds .chip{flex:1; padding:6px 0; font-size:14px; min-width:0}
+.chip{border:1px solid var(--line); background:var(--surface); border-radius:18px; padding:6px 12px; font-size:15px; font-weight:700; min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+
+.status{margin:14px 2px 0; font-size:15px; color:var(--muted); min-height:1.5em}
+.status.err{color:var(--danger)}
+.nextup{margin:6px 2px 0; font-size:15px; color:var(--muted)}
+
+.stories{list-style:none; margin:0; padding:0}
+.topichead{font-family:var(--display); font-weight:700; font-size:15px; color:var(--muted); margin:18px 0 6px}
+.story{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:14px; margin:0 -12px}
+.story button.go{all:unset; flex:1; cursor:pointer}
+.story .t{font-weight:700; line-height:1.35}
+.story .s{color:var(--muted); font-size:14px}
+.story.cur{background:color-mix(in srgb, var(--accent) 14%, transparent)}
+.story a{color:var(--muted); padding:6px; border-radius:8px; flex:none}
+.story a svg{width:18px; height:18px}
+
+.empty{text-align:left; padding:22px 4px; color:var(--muted)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:24px; border:1px solid var(--line); background:var(--surface); padding:10px 18px; font-weight:700; min-height:44px}
+.btn.primary{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+.btn.danger{color:var(--danger)}
+.btn.small{min-height:36px; padding:6px 14px; font-size:15px}
+
+/* Library */
+.ep{display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--line)}
+.ep .dot{width:12px; height:12px; border-radius:6px; flex:none; background:var(--am)}
+.ep .dot.pm{background:var(--pm)}
+.ep .info{flex:1; min-width:0}
+.ep .t{font-weight:700}
+.ep .s{color:var(--muted); font-size:14px}
+.ep.playing .t{color:var(--am)}
+.ep.playing.pm .t{color:var(--pm)}
+
+/* Voices */
+.assign{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.slotcard{border-radius:18px; padding:12px 14px; background:var(--surface); border:1px solid var(--line)}
+.slotcard .k{font-family:var(--display); font-weight:700; font-size:15px}
+.slotcard.am .k{color:var(--am)} .slotcard.pm .k{color:var(--pm)}
+.slotcard .v{font-size:15px; margin-top:2px; word-break:break-word}
+.seg{display:flex; background:var(--surface2); border-radius:22px; padding:4px; margin:16px 0 8px}
+.seg button{flex:1; border:none; background:transparent; border-radius:18px; padding:9px 8px; font-weight:700; font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.filters{display:flex; gap:6px; margin:6px 0 4px}
+.voice{display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--line)}
+.voice .info{flex:1; min-width:0}
+.voice .t{font-weight:700}
+.voice .s{color:var(--muted); font-size:14px}
+.pick{border:1px solid var(--line); background:var(--surface); border-radius:14px; min-width:46px; height:36px; font-weight:700; font-size:14px}
+.pick.am[aria-pressed="true"]{background:var(--am); border-color:var(--am); color:var(--on-accent)}
+.pick.pm[aria-pressed="true"]{background:var(--pm); border-color:var(--pm); color:var(--on-accent)}
+.play{width:40px; height:40px; border-radius:20px; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center}
+.play svg{width:18px; height:18px}
+
+/* Settings */
+.row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
+.row label.name{flex:1}
+.row .sub{display:block; color:var(--muted); font-size:14px}
+.switch{appearance:none; -webkit-appearance:none; width:50px; height:30px; border-radius:15px; background:var(--surface2); border:1px solid var(--line); position:relative; flex:none; margin:0; cursor:pointer}
+.switch::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:11px; background:var(--muted); transition:transform .15s}
+.switch:checked{background:var(--accent); border-color:var(--accent)}
+.switch:checked::after{transform:translateX(20px); background:var(--on-accent)}
+@media (prefers-reduced-motion: reduce){.switch::after{transition:none}}
+.field{display:block; margin:10px 0}
+.field span{display:block; font-size:15px; font-weight:700; margin-bottom:4px}
+.field input, .field select{width:100%; min-height:46px; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface)}
+.field input::placeholder{color:var(--muted)}
+details{border-top:1px solid var(--line); padding:6px 0}
+summary{font-family:var(--display); font-weight:700; padding:12px 0; cursor:pointer}
+
+/* Tabs */
+.tabs{position:fixed; left:0; right:0; bottom:0; z-index:6; display:flex; background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs button{flex:1; border:none; background:transparent; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; font-size:13px; font-weight:700; color:var(--muted); border-radius:14px}
+.tabs button svg{width:24px; height:24px}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"] svg{color:var(--accent)}
+
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(84px + env(safe-area-inset-bottom,0px)); z-index:20; background:var(--ink); color:var(--bg); padding:12px 18px; border-radius:16px; font-size:15px; font-weight:700; max-width:min(92vw,520px); opacity:0; pointer-events:none; transition:opacity .2s}
+.toast.show{opacity:1}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:16px 18px; margin:18px 0 0}
+.card.setup{border-color:var(--accent); margin:0 0 16px}
+.runstate{font-size:15px; margin:4px 0 10px; min-height:1.5em}
+.runstate.err{color:var(--danger)}
+.runstate a{color:inherit}
+.steps{display:flex; gap:4px; margin:0 0 14px}
+.steps span{flex:1; height:6px; border-radius:3px; background:var(--surface2)}
+.steps span.done{background:color-mix(in srgb, var(--am) 55%, transparent)}
+.steps span.cur{background:var(--am); animation:pulse 1.4s ease-in-out infinite}
+.steps:empty{display:none}
+@keyframes pulse{50%{opacity:.45}}
+@media (prefers-reduced-motion: reduce){.steps span.cur{animation:none}}
+#runBtn2[disabled], #runBtn[disabled]{opacity:.5}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="3.4" fill="currentColor"/><path d="M8.5 16a7.5 7.5 0 0 1 7.5-7.5" stroke="var(--am)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3 16A13 13 0 0 1 16 3" stroke="var(--am)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M23.5 16a7.5 7.5 0 0 1-7.5 7.5" stroke="var(--pm)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M29 16a13 13 0 0 1-13 13" stroke="var(--pm)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+    Twice Daily
+  </div>
+  <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode"></button>
+  <button class="iconbtn" id="runBtn" aria-label="Run now: prepare a new broadcast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>Run now</span></button>
+</header>
+
+<main>
+  <!-- LISTEN -->
+  <section class="view active" id="view-listen" aria-label="Listen">
+    <div class="card setup" id="setupCard" hidden>
+      <h3 style="margin-top:0">Connect to GitHub</h3>
+      <p class="note">Paste the access token you created so this app can run broadcasts and save your settings. It's stored only on this phone.</p>
+      <label class="field"><span>GitHub access token</span><input id="setupToken" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+      <button class="btn primary" id="setupSave">Connect</button>
+      <p class="note" id="setupMsg" role="status"></p>
+    </div>
+    <div class="hero" id="hero" data-slot="am">
+      <div class="edition" id="edLabel">Your briefing</div>
+      <div class="bigtime" id="edTime">6:00<small>AM</small></div>
+      <div class="nowtitle" id="nowTitle">Loading your broadcasts</div>
+      <div class="nowsrc" id="nowSrc"></div>
+      <div class="track" id="track" aria-hidden="true"></div>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Position in the broadcast" hidden>
+      <div class="trackmeta"><span id="posLabel"></span><span id="lenLabel"></span></div>
+      <div class="controls">
+        <button class="ctl" id="backBtn" aria-label="Back 15 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg><span class="lbl" id="backLbl">15s</span></button>
+        <button class="ctl" id="prevBtn" aria-label="Previous story"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM20 5.5v13L9.5 12z"/></svg></button>
+        <button class="ctl main" id="playBtn" aria-label="Play"></button>
+        <button class="ctl" id="nextBtn" aria-label="Next story"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM4 5.5v13L14.5 12z"/></svg></button>
+        <button class="ctl" id="fwdBtn" aria-label="Ahead 15 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span class="lbl" id="fwdLbl">15s</span></button>
+      </div>
+      <div class="speeds" id="speeds" role="group" aria-label="Playback speed"></div>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+
+    <div class="card" id="schedCard">
+      <div class="row" style="border:none; padding-top:0"><label class="name" for="schedToggle">Automatic broadcasts<span class="sub" id="schedSub"></span></label><input type="checkbox" class="switch" id="schedToggle" data-sched></div>
+      <div class="runstate" id="runState" role="status" aria-live="polite"></div>
+      <div class="steps" id="runSteps" aria-hidden="true"></div>
+      <button class="btn primary" id="runBtn2">Prepare a broadcast now</button>
+    </div>
+
+    <h2>In this broadcast</h2>
+    <ol class="stories" id="storyList"></ol>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="view" id="view-library" aria-label="Library">
+    <h2>Library</h2>
+    <p class="note" id="libNote"></p>
+    <div id="libList"></div>
+    <p style="margin-top:22px"><button class="btn danger small" id="deleteAllBtn" hidden>Delete all episodes</button></p>
+  </section>
+
+  <!-- VOICES -->
+  <section class="view" id="view-voices" aria-label="Voices">
+    <h2>Voices</h2>
+    <div class="assign">
+      <div class="slotcard am"><div class="k">6 AM voice</div><div class="v" id="amVoice"></div></div>
+      <div class="slotcard pm"><div class="k">4 PM voice</div><div class="v" id="pmVoice"></div></div>
+    </div>
+    <div class="seg" role="group" aria-label="Voice type">
+      <button id="engStudio" aria-pressed="true">Studio voices</button>
+      <button id="engDevice" aria-pressed="false">Phone voices</button>
+    </div>
+    <p class="note" id="voiceNote"></p>
+    <div class="filters" id="genderFilters" role="group" aria-label="Filter voices">
+      <button class="chip" data-g="all" aria-pressed="true">All</button>
+      <button class="chip" data-g="Female" aria-pressed="false">Female</button>
+      <button class="chip" data-g="Male" aria-pressed="false">Male</button>
+    </div>
+    <div id="voiceList"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings" aria-label="Settings">
+    <p class="note" id="settingsLock" hidden>Connect to GitHub on the Listen screen to change these settings.</p>
+    <h2>News sources</h2>
+    <p class="note">Changes apply to the next broadcast. If an outlet only offers a headline, the app looks for the full story at other outlets and leaves it out if none has it.</p>
+    <div id="sourceList"></div>
+
+    <h2>Topics</h2>
+    <p class="note">Stories are sorted into the topics you turn on. Anything outside them is left out.</p>
+    <div id="topicList"></div>
+    <h3>Your own topics</h3>
+    <p class="note">Type a topic or a few keywords separated by commas, like “Cleveland Browns” or “real estate, REIT, shopping centers”.</p>
+    <label class="field"><span>Custom topic 1</span><input id="custom0" autocomplete="off" placeholder="e.g. Cleveland Browns"></label>
+    <label class="field"><span>Custom topic 2</span><input id="custom1" autocomplete="off" placeholder="e.g. real estate, REIT"></label>
+    <label class="field"><span>Custom topic 3</span><input id="custom2" autocomplete="off" placeholder="e.g. Ohio State football"></label>
+
+    <h2>Broadcast</h2>
+    <div class="row"><label class="name" for="schedToggle2">Automatic broadcasts<span class="sub">Prepared at 5 AM and 3 PM, ready by 6 AM and 4 PM, even when your phone is off.</span></label><input type="checkbox" class="switch" id="schedToggle2" data-sched></div>
+    <label class="field"><span>Length</span>
+      <select id="lengthSel">
+        <option value="quick">Quick, about 10 minutes</option>
+        <option value="standard">Standard, about 20 minutes</option>
+        <option value="full">Full, about 30 minutes</option>
+      </select>
+    </label>
+    <div class="row"><label class="name" for="summaries">Full-story summaries<span class="sub">An AI reads each full article and writes a spoken summary sized to your broadcast length.</span></label><input type="checkbox" class="switch" id="summaries"></div>
+    <label class="field"><span>Your time zone</span>
+      <select id="tzSel">
+        <option value="America/New_York">Eastern</option>
+        <option value="America/Chicago">Central</option>
+        <option value="America/Denver">Mountain</option>
+        <option value="America/Phoenix">Arizona</option>
+        <option value="America/Los_Angeles">Pacific</option>
+      </select>
+    </label>
+    <label class="field"><span>Episodes to keep in the library</span>
+      <select id="keepSel"><option value="7">7</option><option value="14">14 (one week)</option><option value="30">30 (about two weeks)</option></select>
+    </label>
+    <div class="row"><label class="name" for="keepAwake">Keep screen on for phone voices<span class="sub">Studio voices play with the screen off. Phone voices stop when the screen locks.</span></label><input type="checkbox" class="switch" id="keepAwake"></div>
+
+    <h2>Appearance</h2>
+    <div class="seg" role="group" aria-label="Theme">
+      <button data-theme-opt="auto">Match phone</button>
+      <button data-theme-opt="light">Light</button>
+      <button data-theme-opt="dark">Dark</button>
+    </div>
+
+    <h2>AI keys</h2>
+    <p class="note">Your OpenAI key (and an optional Claude key) are stored as secrets in your GitHub repository, where the broadcasts are prepared. They aren't kept on this phone.</p>
+    <p><a class="btn small" id="secretsLink" target="_blank" rel="noopener">Open my GitHub secrets</a></p>
+    <details>
+      <summary>Model settings</summary>
+      <p class="note">Leave these on auto unless something stops working. Auto picks a current, low-cost model available on your account.</p>
+      <label class="field"><span>OpenAI summary model</span><input id="openaiTextModel" autocomplete="off" placeholder="auto"></label>
+      <label class="field"><span>OpenAI voice model</span><input id="openaiVoiceModel" autocomplete="off" placeholder="auto"></label>
+      <label class="field"><span>Claude model</span><input id="anthropicModel" autocomplete="off"></label>
+    </details>
+
+    <h2>Connection</h2>
+    <label class="field"><span>GitHub access token</span><input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+    <label class="field"><span>GitHub user name</span><input id="ownerInput" autocomplete="off"></label>
+    <label class="field"><span>Repository name</span><input id="repoInput" autocomplete="off"></label>
+    <p><button class="btn small" id="checkConn">Check connection</button></p>
+    <p class="note" id="connMsg" role="status" aria-live="polite"></p>
+    <p style="margin-top:26px; color:var(--muted); font-size:14px">Twice Daily is prepared on GitHub from each outlet’s public feed and the full articles it links to, and links back to every story.</p>
+  </section>
+</main>
+
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-view="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/></svg>Listen</button>
+  <button role="tab" aria-selected="false" data-view="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M9 4v16"/><path d="M14 4.5l5 15"/></svg>Library</button>
+  <button role="tab" aria-selected="false" data-view="voices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voices</button>
+  <button role="tab" aria-selected="false" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* Twice Daily: the phone app. Broadcasts are prepared on GitHub (on a schedule or on demand) and published here. */
+
+const VOICE_GENDER = {
+  "en-us-x-iob":"Female","en-us-x-iog":"Female","en-us-x-iol":"Male","en-us-x-iom":"Male","en-us-x-sfg":"Female","en-us-x-tpc":"Female","en-us-x-tpd":"Male","en-us-x-tpf":"Female",
+  "en-gb-x-gba":"Female","en-gb-x-gbb":"Male","en-gb-x-gbc":"Female","en-gb-x-gbd":"Male","en-gb-x-gbg":"Female","en-gb-x-rjs":"Male","en-gb-x-fis":"Female",
+  "en-au-x-aua":"Female","en-au-x-aub":"Male","en-au-x-auc":"Female","en-au-x-aud":"Male","en-au-x-afh":"Female",
+  "en-in-x-ena":"Female","en-in-x-enc":"Female","en-in-x-end":"Male","en-in-x-ene":"Male","en-in-x-ahp":"Female","en-in-x-cxx":"Female",
+  "samantha":"Female","alex":"Male","daniel":"Male","karen":"Female","moira":"Female","tessa":"Female","aria":"Female","jenny":"Female","guy":"Male","davis":"Male",
+  "google us english":"Female","google uk english female":"Female","google uk english male":"Male"
+};
+const SAMPLE_LINE = "Good morning. This is Twice Daily. Here's what's happening across the country and around the world, starting with the latest from Washington.";
+const WORKFLOW = "broadcast.yml";
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const WEEKDAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+function clock(d){ let h = d.getHours(); const ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return h + ":" + pad(d.getMinutes()) + " " + ap; }
+const slotLabel = s => s === "am" ? "6 AM" : "4 PM";
+function listWords(a){ if (a.length <= 1) return a.join(""); if (a.length === 2) return a[0] + " and " + a[1]; return a.slice(0, -1).join(", ") + ", and " + a[a.length - 1]; }
+function fmtTime(s){ s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ":" + pad(m) : m) + ":" + pad(x); }
+let toastTimer;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 4000); }
+function setStatus(msg, err){ const el = $("#status"); el.textContent = msg || ""; el.classList.toggle("err", !!err); }
+const ICON = {
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.86l11-6.8a1 1 0 0 0 0-1.72l-11-6.8A1 1 0 0 0 8 5.2z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4.2" height="14" rx="1.2"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.2"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>'
+};
+
+/* ---------- Local preferences (this phone only) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("td2." + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("td2." + k, JSON.stringify(v)); }catch(e){} }
+};
+function detectRepo(){
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+  if (!m) return {owner:"", repo:""};
+  const seg = location.pathname.split("/").filter(Boolean)[0];
+  return {owner:m[1], repo:(seg && !/\.\w+$/.test(seg)) ? seg : m[1] + ".github.io"};
+}
+const D = detectRepo();
+const L = Object.assign({theme:"auto", speed:1, keepAwake:true, token:"", owner:D.owner, repo:D.repo}, store.get("prefs", {}));
+if (!L.owner) L.owner = D.owner; if (!L.repo) L.repo = D.repo;
+const saveL = () => store.set("prefs", L);
+
+/* ---------- Shared settings (stored in the GitHub repository, read by the broadcast builder) ---------- */
+let CAT = {sources:[], topics:[], studioVoices:[]};
+let SS = null, ssSha = null, ssTimer = null, ssSaving = Promise.resolve(), ssDirty = false;
+const connected = () => !!(L.token && L.owner && L.repo);
+
+async function gh(path, opts){
+  opts = opts || {};
+  const res = await fetch("https://api.github.com" + path, Object.assign({}, opts, {
+    cache:"no-store",
+    headers:Object.assign({"Accept":"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28"}, L.token ? {"Authorization":"Bearer " + L.token} : {}, opts.headers || {})
+  }));
+  if (!res.ok){
+    let msg = "GitHub error " + res.status;
+    try{ const j = await res.json(); if (j.message) msg = j.message; }catch(e){}
+    const e = new Error(res.status === 401 ? "GitHub didn't accept the access token" : res.status === 404 ? "GitHub couldn't find the repository, or the token can't see it" : msg);
+    e.status = res.status; throw e;
+  }
+  return res.status === 204 ? null : res.json();
+}
+const repoPath = p => "/repos/" + encodeURIComponent(L.owner) + "/" + encodeURIComponent(L.repo) + p;
+const b64enc = s => btoa(unescape(encodeURIComponent(s)));
+const b64dec = s => decodeURIComponent(escape(atob(s.replace(/\s/g, ""))));
+
+async function loadSettings(){
+  if (!connected()) return;
+  try{
+    const j = await gh(repoPath("/contents/config/settings.json"));
+    SS = JSON.parse(b64dec(j.content)); ssSha = j.sha;
+  }catch(e){
+    let repoOk = false;
+    if (e.status === 404){ try{ await gh(repoPath("")); repoOk = true; }catch(x){} }
+    if (repoOk){ SS = {}; ssSha = null; }
+    else { setStatus("Couldn't load your settings: " + e.message + ".", true); return; }
+  }
+  SS = Object.assign({scheduler:true, timezone:"America/New_York", length:"full", summaries:true, keep:14, sources:{}, topics:{}, custom:["","",""], voices:{am:{engine:"openai", voice:"onyx"}, pm:{engine:"openai", voice:"nova"}}, deleted:[]}, SS || {});
+  CAT.sources.forEach(s => { if (!(s.id in SS.sources)) SS.sources[s.id] = s.on; });
+  CAT.topics.forEach(t => { if (!(t.id in SS.topics)) SS.topics[t.id] = t.on; });
+  if (!Array.isArray(SS.custom) || SS.custom.length !== 3) SS.custom = ["","",""];
+  store.set("ss", SS);
+  renderAll();
+}
+function saveSettings(msg){
+  if (!connected() || !SS) return;
+  store.set("ss", SS); ssDirty = true;
+  clearTimeout(ssTimer);
+  ssTimer = setTimeout(() => { ssSaving = ssSaving.then(() => putSettings(msg || "Update settings from the app")); }, 900);
+}
+async function putSettings(message, retry){
+  ssDirty = false;
+  try{
+    const j = await gh(repoPath("/contents/config/settings.json"), {method:"PUT", body:JSON.stringify(Object.assign({message, content:b64enc(JSON.stringify(SS, null, 1))}, ssSha ? {sha:ssSha} : {}))});
+    ssSha = j.content.sha;
+  }catch(e){
+    if (!retry && (e.status === 409 || e.status === 422)){
+      try{ const cur = await gh(repoPath("/contents/config/settings.json")); ssSha = cur.sha; }catch(x){}
+      return putSettings(message, true);
+    }
+    toast("Couldn't save settings to GitHub: " + e.message);
+  }
+}
+async function flushSettings(){ clearTimeout(ssTimer); if (!ssDirty) return ssSaving; ssSaving = ssSaving.then(() => putSettings("Update settings from the app")); await ssSaving; }
+
+/* ---------- Theme ---------- */
+const isDark = () => L.theme === "dark" || (L.theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+function applyTheme(){
+  if (L.theme === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", L.theme);
+  const dark = isDark(), b = $("#themeBtn");
+  b.innerHTML = dark ? ICON.sun : ICON.moon;
+  b.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#10151F" : "#EEF1F5");
+  document.querySelectorAll("[data-theme-opt]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.themeOpt === L.theme)));
+}
+
+/* ---------- Episodes (published on this site) ---------- */
+let index = [], current = null; // current = full episode data
+const hidden = new Set(store.get("hidden", []));
+async function loadIndex(quiet){
+  try{
+    const res = await fetch("episodes/index.json?t=" + Date.now(), {cache:"no-store"});
+    if (!res.ok) throw new Error(res.status);
+    const list = await res.json();
+    const before = index.length ? index[0].id : null;
+    index = Array.isArray(list) ? list : [];
+    // Forget local "hide" marks once the site no longer lists those episodes
+    [...hidden].forEach(id => { if (!index.some(e => e.id === id)) hidden.delete(id); }); store.set("hidden", [...hidden]);
+    const visible = index.filter(e => !hidden.has(e.id));
+    if (!current && visible[0]) await openEpisode(visible[0], false);
+    else if (before && visible[0] && visible[0].id !== before && !P.playing){ await openEpisode(visible[0], false); toast("Your " + slotLabel(visible[0].slot) + " edition is ready"); }
+    if (!visible.length) renderListen();
+    renderLibrary();
+  }catch(e){
+    if (!quiet){ renderListen(); }
+  }
+}
+async function openEpisode(entry, autoplay){
+  if (P.playing) pause();
+  try{
+    const res = await fetch("episodes/" + entry.id + ".json", {cache:"no-store"});
+    current = Object.assign({}, entry, await res.json());
+  }catch(e){ toast("Couldn't open that episode."); return; }
+  P.seg = 0; P.part = 0; P.pos = 0;
+  if (current.audio){ audio.src = "episodes/" + current.id + ".mp3"; audio.preload = "metadata"; } else { audio.removeAttribute("src"); }
+  renderListen(); renderLibrary();
+  if (autoplay) play();
+}
+
+/* ---------- Player ---------- */
+const audio = new Audio(); audio.preload = "metadata";
+const P = {seg:0, part:0, pos:0, playing:false, token:0};
+const trackMode = () => !!(current && current.audio);
+const offsetFor = seg => { const o = (current.offsets || []).find(x => x.seg >= seg); return o ? o.t : 0; };
+const segAt = t => { let s = 0; for (const o of current.offsets || []){ if (o.t <= t + 0.05) s = o.seg; else break; } return s; };
+const duration = () => current.duration || audio.duration || 0;
+
+function play(){
+  if (!current) return;
+  stopAudition();
+  P.playing = true; renderPlayState();
+  if (trackMode()){
+    audio.playbackRate = L.speed;
+    const go = () => audio.play().catch(() => { P.playing = false; renderPlayState(); setStatus("Tap play to start."); });
+    if (audio.readyState >= 1) go(); else { audio.load(); audio.addEventListener("loadedmetadata", () => { if (P.pos) audio.currentTime = P.pos; go(); }, {once:true}); }
+  } else { wake(true); runPart(); }
+}
+function pause(){
+  P.playing = false; P.token++;
+  if (trackMode()){ P.pos = audio.currentTime; audio.pause(); }
+  else if ("speechSynthesis" in window) speechSynthesis.cancel();
+  wake(false); renderPlayState();
+}
+function seekTo(t){
+  t = Math.max(0, Math.min(t, duration() - 0.3)); P.pos = t;
+  try{ audio.currentTime = t; }catch(e){}
+  P.seg = segAt(t); renderNow(); updateScrub();
+}
+audio.addEventListener("timeupdate", () => {
+  if (!trackMode()) return;
+  P.pos = audio.currentTime;
+  const s = segAt(audio.currentTime); if (s !== P.seg){ P.seg = s; renderNow(); }
+  updateScrub();
+  if ("mediaSession" in navigator){ try{ navigator.mediaSession.setPositionState({duration:duration(), position:Math.min(audio.currentTime, duration()), playbackRate:audio.playbackRate}); }catch(e){} }
+});
+audio.addEventListener("ended", () => { if (trackMode() && P.playing) finished(); });
+audio.addEventListener("error", () => { if (trackMode() && P.playing){ pause(); setStatus("The audio didn't load. Check your connection and press play again.", true); } });
+
+function navTargets(){ return current.segments.map((s, i) => ({s, i})).filter(x => x.s.type !== "topic").map(x => x.i); }
+function withHeader(i, from){ const s = current.segments; return (i > 0 && s[i - 1].type === "topic" && s[i].topic !== (s[from] || {}).topic) ? i - 1 : i; }
+function nextStory(){
+  if (!current) return;
+  const cur = trackMode() ? segAt(audio.currentTime) : P.seg;
+  const t = navTargets().find(i => i > cur); if (t == null) return;
+  const sg = withHeader(t, cur);
+  if (trackMode()) seekTo(offsetFor(sg)); else { P.seg = sg; P.part = 0; if (P.playing) runPart(); else renderNow(); }
+}
+function prevStory(){
+  if (!current) return;
+  let cur = trackMode() ? segAt(audio.currentTime) : P.seg;
+  if (current.segments[cur].type === "topic") cur++;
+  const into = trackMode() ? audio.currentTime - offsetFor(withHeader(cur, cur)) > 4 : P.part > 1;
+  let target = cur;
+  if (!into){ const t = navTargets().filter(i => i < cur).pop(); if (t != null) target = t; }
+  const sg = withHeader(target, cur);
+  if (trackMode()) seekTo(offsetFor(sg)); else { P.seg = sg; P.part = 0; if (P.playing) runPart(); else renderNow(); }
+}
+function nudge(dir){
+  if (!current) return;
+  if (trackMode()){ seekTo(audio.currentTime + dir * 15); return; }
+  P.part += dir;
+  if (P.part < 0){ P.seg = Math.max(0, P.seg - 1); P.part = 0; }
+  if (P.playing) runPart(); else renderNow();
+}
+function jumpTo(i){ if (!current) return; if (trackMode()){ seekTo(offsetFor(i)); if (!P.playing) play(); } else { P.seg = i; P.part = 0; play(); } }
+function finished(){
+  P.playing = false; wake(false); renderPlayState();
+  $("#nowTitle").textContent = "That's the whole broadcast";
+  $("#nowSrc").textContent = "Tap play to hear it again from the top.";
+  P.seg = 0; P.part = 0; P.pos = 0; try{ audio.currentTime = 0; }catch(e){}
+}
+function setSpeed(x){ L.speed = x; saveL(); renderSpeeds(); audio.playbackRate = x; if (P.playing && !trackMode()) runPart(); }
+
+/* Phone-voice reading (for editions assigned a phone voice) */
+function speechText(t){ return (t || "").replace(/https?:\/\/\S+/g, "").replace(/(?<![A-Za-z.])AI(?![A-Za-z])/g, "A.I.").replace(/\s&\s/g, " and ").replace(/\s+/g, " ").trim(); }
+function sentences(t){
+  if (!t) return [];
+  const parts = t.match(/(?:[^.!?]|[.!?](?=[^\s"”’)]))+(?:[.!?]+["”’)]*(?=\s|$)|$)/g) || [t];
+  const out = []; let buf = "";
+  parts.forEach(p => { buf += p; const tail = buf.trim().split(" ").pop(); if (/^(?:[A-Z]\.)+$|^(Mr|Mrs|Ms|Dr|Sen|Rep|Gov|St|Jr|Sr|Inc|Co|Corp|vs|No|Gen|Lt|Sgt)\.$/.test(tail) || buf.trim().length < 25) return; out.push(buf.trim()); buf = ""; });
+  if (buf.trim()) out.push(buf.trim());
+  return out;
+}
+let deviceVoices = [];
+function loadVoices(){ if (!("speechSynthesis" in window)) return; deviceVoices = speechSynthesis.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang)); renderVoices(); renderVoiceCards(); }
+function findDeviceVoice(uri){ return deviceVoices.find(v => v.voiceURI === uri) || deviceVoices.find(v => v.default) || deviceVoices.find(v => /en[-_]US/i.test(v.lang)) || deviceVoices[0] || null; }
+function runPart(){
+  const tok = ++P.token, segs = current.segments;
+  if (P.seg >= segs.length){ finished(); return; }
+  const parts = sentences(speechText(segs[P.seg].text));
+  if (P.part >= parts.length){ P.seg++; P.part = 0; return runPart(); }
+  renderNow(); speak(parts[P.part], tok, 0);
+}
+let utterSeq = 0;
+function speak(text, tok, attempt){
+  if (!("speechSynthesis" in window)){ setStatus("This browser can't speak text. Open the app in Chrome.", true); pause(); return; }
+  const ss = speechSynthesis; ss.cancel(); try{ ss.resume(); }catch(e){}
+  deviceVoices = ss.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang)) || deviceVoices;
+  const id = ++utterSeq, u = new SpeechSynthesisUtterance(text);
+  const a = (SS && SS.voices && SS.voices[current.slot]) || {};
+  const v = attempt < 2 ? findDeviceVoice(a.uri) : null; if (v){ u.voice = v; u.lang = v.lang; } else u.lang = "en-US";
+  u.rate = L.speed;
+  let started = false; const live = () => id === utterSeq && tok === P.token && P.playing;
+  u.onstart = () => { started = true; };
+  u.onend = () => { if (live()){ P.part++; runPart(); } };
+  u.onerror = e => { if (!live() || e.error === "interrupted" || e.error === "canceled") return; P.part++; setTimeout(() => { if (tok === P.token) runPart(); }, 60); };
+  setTimeout(() => { if (live()){ try{ ss.resume(); }catch(e){} ss.speak(u); } }, 60);
+  setTimeout(() => { if (started || !live() || ss.speaking) return; if (attempt < 2) speak(text, tok, attempt + 1); else { pause(); setStatus("Your phone's voice didn't start. Close the app fully, reopen it, and press play.", true); } }, 4000);
+}
+let lock = null;
+async function wake(on){
+  try{
+    if (on && L.keepAwake && !trackMode() && "wakeLock" in navigator){ if (!lock){ lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); } }
+    else if (!on && lock){ await lock.release(); lock = null; }
+  }catch(e){ lock = null; }
+}
+if ("mediaSession" in navigator){
+  const h = (a, f) => { try{ navigator.mediaSession.setActionHandler(a, f); }catch(e){} };
+  h("play", play); h("pause", pause); h("nexttrack", nextStory); h("previoustrack", prevStory);
+  h("seekforward", () => nudge(1)); h("seekbackward", () => nudge(-1));
+  h("seekto", d => { if (trackMode() && d && d.seekTime != null) seekTo(d.seekTime); });
+}
+
+/* ---------- Voice auditions ---------- */
+let auditionTok = 0;
+const sampleAudio = new Audio();
+function stopAudition(){ auditionTok++; sampleAudio.pause(); if ("speechSynthesis" in window && !(P.playing && !trackMode())) speechSynthesis.cancel(); markAudition(null); }
+function audition(kind, id, btn){
+  if (btn && btn.dataset.playing === "1"){ stopAudition(); return; }
+  if (P.playing) pause();
+  stopAudition();
+  const tok = ++auditionTok; markAudition(btn);
+  if (kind === "device"){
+    const u = new SpeechSynthesisUtterance(SAMPLE_LINE); const v = deviceVoices.find(x => x.voiceURI === id); if (v){ u.voice = v; u.lang = v.lang; }
+    u.rate = L.speed; u.onend = u.onerror = () => { if (tok === auditionTok) markAudition(null); };
+    setTimeout(() => speechSynthesis.speak(u), 40);
+  } else {
+    sampleAudio.src = "voices/" + id + ".mp3"; sampleAudio.playbackRate = L.speed;
+    sampleAudio.onended = () => { if (tok === auditionTok) markAudition(null); };
+    sampleAudio.onerror = () => { if (tok === auditionTok){ markAudition(null); toast("Voice samples appear after your first broadcast is published."); } };
+    sampleAudio.play().catch(() => {});
+  }
+}
+function markAudition(btn){
+  document.querySelectorAll(".play[data-playing='1']").forEach(b => { b.dataset.playing = "0"; b.innerHTML = ICON.play; b.setAttribute("aria-label", b.dataset.label); });
+  if (btn){ btn.dataset.playing = "1"; btn.innerHTML = ICON.stop; btn.setAttribute("aria-label", "Stop sample"); }
+}
+
+/* ---------- Running broadcasts on GitHub ---------- */
+const STEP_NAMES = [
+  ["Gather news feeds", "Gathering news feeds"],
+  ["Find full articles", "Finding full articles"],
+  ["Write summaries", "Writing the summaries"],
+  ["Record audio", "Recording the broadcast"],
+  ["Assemble the site", "Publishing"]
+];
+let runWatch = null, lastRunId = store.get("lastRunId", 0), expectRunSince = 0, branch = null;
+async function runNow(mode){
+  if (!connected()){ toast("Connect to GitHub first, on the Listen screen."); return; }
+  if (SS) await flushSettings();
+  try{
+    if (!branch){ const r = await gh(repoPath("")); branch = r.default_branch || "main"; }
+    await gh(repoPath("/actions/workflows/" + WORKFLOW + "/dispatches"), {method:"POST", body:JSON.stringify({ref:branch, inputs:{mode:mode || "full"}})});
+    expectRunSince = Date.now() - 5000;
+    if (mode !== "publish"){ setRunState("Starting a new broadcast. This usually takes a few minutes.", []); setRunButtons(true); }
+    pollSoon(4000);
+  }catch(e){ setRunState("Couldn't start the broadcast: " + e.message + ".", [], true); }
+}
+function setRunButtons(disabled){ $("#runBtn").disabled = disabled; $("#runBtn2").disabled = disabled; }
+function setRunState(msg, steps, err){
+  const el = $("#runState"); el.innerHTML = msg; el.classList.toggle("err", !!err);
+  $("#runSteps").innerHTML = (steps || []).map(s => '<span class="' + s + '"></span>').join("");
+}
+function pollSoon(ms){ clearTimeout(runWatch); runWatch = setTimeout(checkRuns, ms); }
+async function checkRuns(){
+  if (!L.owner || !L.repo) return;
+  let next = 60000;
+  try{
+    const j = await gh(repoPath("/actions/workflows/" + WORKFLOW + "/runs?per_page=5"));
+    const runs = (j.workflow_runs || []);
+    const active = runs.find(r => r.status !== "completed");
+    if (active){
+      const jobs = await gh(repoPath("/actions/runs/" + active.id + "/jobs"));
+      const build = (jobs.jobs || []).find(x => x.name === "build") || (jobs.jobs || [])[0];
+      const deploy = (jobs.jobs || []).find(x => x.name === "deploy");
+      const steps = (build && build.steps) || [];
+      const byName = n => steps.find(s => s.name === n);
+      const check = byName("Check the schedule");
+      const gather = byName("Gather news feeds");
+      // A scheduled check that finds nothing to do isn't worth showing
+      if (active.event === "schedule" && (!check || check.status !== "completed" || (gather && gather.conclusion === "skipped"))){ next = 30000; }
+      else {
+        let idx = -1;
+        STEP_NAMES.forEach(([n], i) => { const s = byName(n); if (s && (s.status === "in_progress" || s.status === "completed") && s.conclusion !== "skipped") idx = i; });
+        if (deploy && deploy.status !== "queued") idx = 4;
+        const label = idx < 0 ? (active.status === "queued" ? "Waiting for GitHub to start" : "Checking the schedule") : STEP_NAMES[idx][1];
+        const mins = Math.max(0, Math.round((Date.now() - new Date(active.run_started_at || active.created_at)) / 60000));
+        const isPublishOnly = gather && gather.conclusion === "skipped" && active.event === "workflow_dispatch";
+        setRunState(isPublishOnly ? "Updating your library" : esc(label) + (idx >= 0 ? " (step " + (idx + 1) + " of 5)" : "") + ", " + mins + " min so far.",
+          isPublishOnly ? [] : STEP_NAMES.map((_, i) => i < idx ? "done" : i === idx ? "cur" : ""));
+        setRunButtons(true);
+        next = 10000;
+      }
+      lastRunId = active.id;
+    } else {
+      setRunButtons(!connected());
+      const latest = runs[0];
+      if (expectRunSince && (!latest || new Date(latest.created_at) < expectRunSince) && Date.now() - expectRunSince < 90000){ next = 5000; }
+      else {
+        expectRunSince = 0;
+        if (latest && latest.id === lastRunId){
+          // The run we were watching just finished
+          lastRunId = 0; store.set("lastRunId", 0);
+          if (latest.conclusion === "success"){ setRunState(scheduleSummary(), []); await loadIndex(true); }
+          else if (latest.conclusion && latest.conclusion !== "cancelled"){
+            let where = "";
+            try{ const jobs = await gh(repoPath("/actions/runs/" + latest.id + "/jobs")); const s = (jobs.jobs || []).flatMap(x => x.steps || []).find(x => x.conclusion === "failure"); if (s) where = " at “" + s.name + "”"; }catch(e){}
+            setRunState("The last broadcast stopped" + esc(where) + '. Tap Run now to try again, or <a href="' + esc(latest.html_url) + '" target="_blank" rel="noopener">see the details on GitHub</a>.', [], true);
+          } else setRunState(scheduleSummary(), []);
+        } else setRunState(scheduleSummary(), []);
+      }
+    }
+    store.set("lastRunId", lastRunId);
+  }catch(e){
+    if (connected()) setRunState("Couldn't check on broadcasts: " + esc(e.message) + ".", [], true);
+    next = 120000;
+  }
+  if (document.visibilityState === "visible") pollSoon(next);
+}
+function scheduleSummary(){
+  const on = SS ? SS.scheduler !== false : true;
+  if (!on) return "Automatic broadcasts are off. Tap Run now whenever you want a new edition.";
+  const now = new Date(), h = now.getHours() + now.getMinutes() / 60;
+  const next = h < 5 ? "5 AM today" : h < 15 ? "3 PM today" : "5 AM tomorrow";
+  return "Next automatic broadcast starts at " + next + ".";
+}
+
+/* ---------- Rendering ---------- */
+function epTitle(e){ const d = new Date(e.editionDate || e.createdAt); return WEEKDAYS[d.getDay()] + (e.slot === "am" ? " morning" : " afternoon") + " edition" + (e.refresh ? ", updated " + clock(new Date(e.createdAt)) : ""); }
+function epMinutes(e){ if (e.duration) return Math.max(1, Math.round(e.duration / 60)); const w = (e.segments || []).reduce((n, s) => n + (s.text || "").split(/\s+/).length, 0); return Math.max(1, Math.round(w / 160)); }
+function renderListen(){
+  $("#setupCard").hidden = connected();
+  const hero = $("#hero");
+  if (!current){
+    hero.dataset.slot = new Date().getHours() < 15 ? "am" : "pm";
+    $("#edLabel").textContent = "Twice Daily";
+    $("#edTime").innerHTML = hero.dataset.slot === "am" ? "6:00<small>AM</small>" : "4:00<small>PM</small>";
+    $("#nowTitle").textContent = "No broadcast published yet";
+    $("#nowSrc").textContent = connected() ? "Tap Run now to prepare one, or wait for the next automatic broadcast." : "Connect to GitHub above to get started.";
+    $("#track").innerHTML = ""; $("#posLabel").textContent = ""; $("#lenLabel").textContent = ""; $("#scrub").hidden = true;
+    $("#storyList").innerHTML = '<li class="empty">Stories will appear here once a broadcast is published.</li>';
+    renderPlayState(); return;
+  }
+  hero.dataset.slot = current.slot;
+  $("#edLabel").textContent = epTitle(current);
+  $("#edTime").innerHTML = current.slot === "am" ? "6:00<small>AM</small>" : "4:00<small>PM</small>";
+  let html = "", last = null;
+  current.segments.forEach((s, i) => {
+    if (s.type !== "story") return;
+    if (s.topic !== last){ html += '<li class="topichead">' + esc(s.topic) + "</li>"; last = s.topic; }
+    html += '<li class="story" data-i="' + i + '"><button class="go" data-jump="' + i + '"><div class="t">' + esc(s.title) + '</div><div class="s">' + esc(s.source) + (s.also && s.also.length ? ", also " + esc(listWords(s.also)) : "") + "</div></button>" +
+      (s.link ? '<a href="' + esc(s.link) + '" target="_blank" rel="noopener" aria-label="Open full article">' + ICON.link + "</a>" : "") + "</li>";
+  });
+  $("#storyList").innerHTML = html;
+  const notes = (current.warn || []).concat(current.audio ? [] : ["This edition is read by your phone's voice."]);
+  setStatus(notes.join(" "));
+  renderNow(); renderPlayState(); renderSpeeds();
+}
+function renderNow(){
+  if (!current) return;
+  const segs = current.segments; let i = Math.min(P.seg, segs.length - 1), seg = segs[i];
+  if (seg.type === "topic" && segs[i + 1]){ i++; seg = segs[i]; }
+  const storyIdx = segs.map((s, k) => ({s, k})).filter(x => x.s.type === "story").map(x => x.k);
+  const pos = storyIdx.indexOf(i);
+  $("#nowTitle").textContent = seg.type === "story" ? seg.title : seg.type === "intro" ? "Introduction" : "Wrap-up";
+  $("#nowSrc").textContent = seg.type === "story" ? seg.source + ", " + seg.topic : seg.type === "intro" ? storyIdx.length + " stories from " + listWords(current.outlets || []) : "End of broadcast";
+  $("#track").innerHTML = storyIdx.map((k, n) => '<span class="' + (k === i ? "cur" : pos > -1 ? (n < pos ? "done" : "") : seg.type === "outro" ? "done" : "") + '"></span>').join("");
+  $("#posLabel").textContent = pos > -1 ? "Story " + (pos + 1) + " of " + storyIdx.length : seg.type === "intro" ? "Starting" : "Finished";
+  document.querySelectorAll(".story").forEach(li => li.classList.toggle("cur", Number(li.dataset.i) === i));
+  const t = trackMode();
+  $("#backLbl").textContent = t ? "15s" : "Back"; $("#fwdLbl").textContent = t ? "15s" : "Ahead";
+  if ("mediaSession" in navigator && window.MediaMetadata){ try{ navigator.mediaSession.metadata = new MediaMetadata({title:$("#nowTitle").textContent, artist:"Twice Daily, " + slotLabel(current.slot) + " edition", album:epTitle(current), artwork:[{src:"icon-512.png", sizes:"512x512", type:"image/png"}]}); }catch(e){} }
+  updateScrub();
+}
+function updateScrub(){
+  const sc = $("#scrub");
+  if (!current || !trackMode() || !duration()){ sc.hidden = true; if (current) $("#lenLabel").textContent = "About " + Math.round(epMinutes(current) / L.speed) + " min at " + L.speed + "x"; return; }
+  sc.hidden = false;
+  const pos = P.playing || audio.currentTime ? audio.currentTime : P.pos;
+  sc.value = String(Math.round(pos / duration() * 1000) || 0);
+  $("#lenLabel").textContent = fmtTime(pos) + " of " + fmtTime(duration());
+}
+function renderPlayState(){
+  const b = $("#playBtn"); b.innerHTML = P.playing ? ICON.pause : ICON.play; b.setAttribute("aria-label", P.playing ? "Pause" : "Play");
+  ["#playBtn","#prevBtn","#nextBtn","#backBtn","#fwdBtn"].forEach(s => $(s).disabled = !current);
+  if ("mediaSession" in navigator) try{ navigator.mediaSession.playbackState = P.playing ? "playing" : "paused"; }catch(e){}
+  renderLibrary();
+}
+function renderSpeeds(){ $("#speeds").innerHTML = [0.8, 1, 1.25, 1.5, 1.75, 2].map(x => '<button class="chip" data-speed="' + x + '" aria-pressed="' + (L.speed === x) + '">' + x + "x</button>").join(""); updateScrub(); }
+let confirmDel = null;
+function renderLibrary(){
+  const list = $("#libList"), eps = index.filter(e => !hidden.has(e.id));
+  $("#libNote").textContent = eps.length ? eps.length + " saved. Older episodes are removed automatically as new ones are published." : "";
+  $("#deleteAllBtn").hidden = !eps.length || !connected();
+  if (!eps.length){ list.innerHTML = '<p class="empty">Published broadcasts are saved here.</p>'; return; }
+  list.innerHTML = eps.map(e => {
+    const d = new Date(e.createdAt), isCur = current && current.id === e.id;
+    return '<div class="ep ' + e.slot + (isCur ? " playing" : "") + '"><span class="dot ' + e.slot + '"></span><div class="info"><div class="t">' + esc(epTitle(e)) + '</div><div class="s">' + MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + (e.stories || "?") + " stories, " + epMinutes(e) + " min" + (e.audio ? "" : ", phone voice") + "</div></div>" +
+      '<button class="play" data-label="Play ' + esc(epTitle(e)) + '" aria-label="' + (isCur && P.playing ? "Pause " : "Play ") + esc(epTitle(e)) + '" data-ep-play="' + e.id + '">' + (isCur && P.playing ? ICON.pause : ICON.play) + "</button>" +
+      (!connected() ? "" : confirmDel === e.id ? '<button class="btn danger small" data-ep-del="' + e.id + '">Delete</button>' : '<button class="play" aria-label="Delete ' + esc(epTitle(e)) + '" data-ep-ask="' + e.id + '">' + ICON.trash + "</button>") + "</div>";
+  }).join("");
+}
+let voiceTab = "studio", genderFilter = "all";
+function voiceName(a){
+  if (!a || a.engine === "openai"){ const v = (a && a.voice) || "onyx"; const sv = CAT.studioVoices.find(x => x.id === v); return "Studio: " + cap(v) + (sv ? " (" + sv.g.toLowerCase() + ")" : ""); }
+  const v = findDeviceVoice(a.uri); return "Phone: " + (v ? voiceInfo(v).name : "default voice");
+}
+function renderVoiceCards(){ const v = (SS && SS.voices) || {}; $("#amVoice").textContent = voiceName(v.am); $("#pmVoice").textContent = voiceName(v.pm); }
+function voiceInfo(v){
+  const code = (v.voiceURI + " " + v.name).toLowerCase(); let g = "";
+  for (const k in VOICE_GENDER){ if (code.includes(k)){ g = VOICE_GENDER[k]; break; } }
+  let region = ""; try{ const r = v.lang.replace("_", "-").split("-")[1]; if (r) region = new Intl.DisplayNames(["en"], {type:"region"}).of(r.toUpperCase()); }catch(e){}
+  const m = code.match(/x-([a-z]{3})/);
+  let name = v.name; if (/^[a-z]{2}-[a-z]{2}-x-/i.test(v.name) || /^English/i.test(v.name)) name = "English" + (region ? " (" + region + ")" : "") + (m ? " voice " + m[1].toUpperCase() : "");
+  return {g, name, quality:/network|online|natural|neural|google|enhanced|premium/i.test(code) ? "High quality" : ""};
+}
+function renderVoices(){
+  $("#engDevice").setAttribute("aria-pressed", String(voiceTab === "device")); $("#engStudio").setAttribute("aria-pressed", String(voiceTab === "studio"));
+  document.querySelectorAll("#genderFilters .chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.g === genderFilter)));
+  const list = $("#voiceList"), V = (SS && SS.voices) || {};
+  const picks = (attr, isOn) => ["am","pm"].map(sl => '<button class="pick ' + sl + '" aria-pressed="' + isOn(sl) + '" data-assign="' + sl + '" ' + attr + ' aria-label="Use for ' + slotLabel(sl) + '"' + (connected() ? "" : " disabled") + ">" + sl.toUpperCase() + "</button>").join("");
+  if (voiceTab === "studio"){
+    $("#voiceNote").textContent = "Broadcast-quality voices, recorded on GitHub so they keep playing with your screen off. Tap AM or PM to choose the voice for each edition; it applies from the next broadcast.";
+    list.innerHTML = CAT.studioVoices.filter(x => genderFilter === "all" || x.g === genderFilter).map(sv => {
+      const isOn = sl => (V[sl] || {}).engine !== "device" && (V[sl] || {}).voice === sv.id;
+      return '<div class="voice"><button class="play" data-label="Play sample of ' + cap(sv.id) + '" aria-label="Play sample of ' + cap(sv.id) + '" data-aud-studio="' + sv.id + '">' + ICON.play + '</button><div class="info"><div class="t">' + cap(sv.id) + '</div><div class="s">' + sv.g + ", " + sv.d.toLowerCase() + "</div></div>" + picks('data-studio="' + sv.id + '"', isOn) + "</div>";
+    }).join("");
+  } else {
+    $("#voiceNote").textContent = "Free voices built into your phone. An edition with a phone voice isn't recorded, so it only plays while your screen is on.";
+    if (!("speechSynthesis" in window)){ list.innerHTML = '<p class="empty">This browser doesn\'t offer phone voices.</p>'; return; }
+    if (!deviceVoices.length){ list.innerHTML = '<p class="empty">Loading your phone\'s voices.</p>'; return; }
+    const items = deviceVoices.map(v => ({v, info:voiceInfo(v)})).filter(x => genderFilter === "all" || x.info.g === genderFilter).sort((a, b) => (b.info.quality ? 1 : 0) - (a.info.quality ? 1 : 0) || a.info.name.localeCompare(b.info.name));
+    list.innerHTML = items.length ? items.map(({v, info}) => {
+      const isOn = sl => (V[sl] || {}).engine === "device" && (V[sl].uri === v.voiceURI || (!V[sl].uri && v.default));
+      return '<div class="voice"><button class="play" data-label="Play sample of ' + esc(info.name) + '" aria-label="Play sample of ' + esc(info.name) + '" data-aud-device="' + esc(v.voiceURI) + '">' + ICON.play + '</button><div class="info"><div class="t">' + esc(info.name) + '</div><div class="s">' + esc([info.g || "Voice", info.quality].filter(Boolean).join(", ")) + "</div></div>" + picks('data-uri="' + esc(v.voiceURI) + '"', isOn) + "</div>";
+    }).join("") : '<p class="empty">No phone voices are labeled ' + genderFilter.toLowerCase() + ".</p>";
+  }
+}
+function renderSettings(){
+  const locked = !connected() || !SS;
+  $("#settingsLock").hidden = !locked;
+  const S = SS || store.get("ss", null) || {sources:{}, topics:{}, custom:["","",""]};
+  const sw = (id, label, on, sub, attr) => '<div class="row"><label class="name" for="' + id + '">' + esc(label) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</label><input type="checkbox" class="switch" id="' + id + '" ' + attr + (on ? " checked" : "") + (locked ? " disabled" : "") + "></div>";
+  $("#sourceList").innerHTML = CAT.sources.map(s => sw("src-" + s.id, s.name, S.sources[s.id] != null ? S.sources[s.id] : s.on, s.local ? "Local" : "", 'data-src="' + s.id + '"')).join("");
+  $("#topicList").innerHTML = CAT.topics.map(t => sw("top-" + t.id, t.name, S.topics[t.id] != null ? S.topics[t.id] : t.on, "", 'data-topic="' + t.id + '"')).join("");
+  (S.custom || ["","",""]).forEach((v, i) => { const el = $("#custom" + i); el.value = v; el.disabled = locked; });
+  const set = (sel, v) => { const el = $(sel); el.value = v; el.disabled = locked; };
+  set("#lengthSel", S.length || "full"); set("#tzSel", S.timezone || "America/New_York"); set("#keepSel", String(S.keep || 14));
+  set("#openaiTextModel", S.openaiTextModel && S.openaiTextModel !== "auto" ? S.openaiTextModel : ""); set("#openaiVoiceModel", S.openaiVoiceModel && S.openaiVoiceModel !== "auto" ? S.openaiVoiceModel : ""); set("#anthropicModel", S.anthropicModel || "claude-haiku-5-5");
+  $("#summaries").checked = S.summaries !== false; $("#summaries").disabled = locked;
+  document.querySelectorAll("[data-sched]").forEach(el => { el.checked = S.scheduler !== false; el.disabled = locked; });
+  $("#schedSub").textContent = (S.scheduler !== false) ? "On: prepared at 5 AM and 3 PM, ready by 6 AM and 4 PM." : "Off: broadcasts only run when you tap Run now.";
+  $("#keepAwake").checked = L.keepAwake;
+  $("#tokenInput").value = L.token; $("#ownerInput").value = L.owner; $("#repoInput").value = L.repo;
+  $("#secretsLink").href = "https://github.com/" + encodeURIComponent(L.owner || "") + "/" + encodeURIComponent(L.repo || "") + "/settings/secrets/actions";
+  if (!connected()) setRunButtons(true);
+}
+function renderAll(){ renderSettings(); renderVoices(); renderVoiceCards(); renderListen(); renderLibrary(); }
+
+/* ---------- Events ---------- */
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-view]"); if (!b) return;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + b.dataset.view));
+  if (b.dataset.view === "voices") loadVoices();
+  window.scrollTo(0, 0);
+});
+$("#themeBtn").onclick = () => { L.theme = isDark() ? "light" : "dark"; saveL(); applyTheme(); };
+document.querySelectorAll("[data-theme-opt]").forEach(b => b.onclick = () => { L.theme = b.dataset.themeOpt; saveL(); applyTheme(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+$("#runBtn").onclick = () => runNow("full");
+$("#runBtn2").onclick = () => runNow("full");
+$("#playBtn").onclick = () => P.playing ? pause() : play();
+$("#nextBtn").onclick = nextStory; $("#prevBtn").onclick = prevStory;
+$("#fwdBtn").onclick = () => nudge(1); $("#backBtn").onclick = () => nudge(-1);
+$("#scrub").addEventListener("input", e => { if (trackMode()) seekTo(Number(e.target.value) / 1000 * duration()); });
+$("#speeds").addEventListener("click", e => { const b = e.target.closest("[data-speed]"); if (b) setSpeed(Number(b.dataset.speed)); });
+$("#storyList").addEventListener("click", e => { const b = e.target.closest("[data-jump]"); if (b) jumpTo(Number(b.dataset.jump)); });
+$("#libList").addEventListener("click", e => {
+  const p = e.target.closest("[data-ep-play]"), a = e.target.closest("[data-ep-ask]"), d = e.target.closest("[data-ep-del]");
+  if (p){ const ep = index.find(x => x.id === p.dataset.epPlay); if (!ep) return; if (current && current.id === ep.id) P.playing ? pause() : play(); else openEpisode(ep, true); }
+  else if (a){ confirmDel = a.dataset.epAsk; renderLibrary(); setTimeout(() => { if (confirmDel === a.dataset.epAsk){ confirmDel = null; renderLibrary(); } }, 4000); }
+  else if (d){ confirmDel = null; deleteEpisodes([d.dataset.epDel]); }
+});
+let delAllArmed = false;
+$("#deleteAllBtn").onclick = e => {
+  const eps = index.filter(x => !hidden.has(x.id));
+  if (!delAllArmed){ delAllArmed = true; e.target.textContent = "Tap again to delete all " + eps.length + " episodes"; setTimeout(() => { delAllArmed = false; e.target.textContent = "Delete all episodes"; }, 4000); return; }
+  delAllArmed = false; e.target.textContent = "Delete all episodes"; deleteEpisodes(eps.map(x => x.id));
+};
+async function deleteEpisodes(ids){
+  if (!connected() || !SS) return;
+  ids.forEach(id => hidden.add(id)); store.set("hidden", [...hidden]);
+  if (current && ids.includes(current.id)){ pause(); current = null; const next = index.find(x => !hidden.has(x.id)); if (next) await openEpisode(next, false); else renderListen(); }
+  renderLibrary();
+  SS.deleted = [...new Set((SS.deleted || []).concat(ids))].slice(-200);
+  ssDirty = true; await flushSettings();
+  runNow("publish");
+  toast(ids.length === 1 ? "Episode deleted" : "All episodes deleted");
+}
+$("#engDevice").onclick = () => { voiceTab = "device"; loadVoices(); };
+$("#engStudio").onclick = () => { voiceTab = "studio"; renderVoices(); };
+$("#genderFilters").addEventListener("click", e => { const c = e.target.closest("[data-g]"); if (c){ genderFilter = c.dataset.g; renderVoices(); } });
+$("#voiceList").addEventListener("click", e => {
+  const ad = e.target.closest("[data-aud-device]"), as = e.target.closest("[data-aud-studio]"), pk = e.target.closest("[data-assign]");
+  if (ad) audition("device", ad.dataset.audDevice, ad);
+  else if (as) audition("studio", as.dataset.audStudio, as);
+  else if (pk && SS){
+    const sl = pk.dataset.assign;
+    SS.voices = SS.voices || {};
+    SS.voices[sl] = pk.dataset.studio ? {engine:"openai", voice:pk.dataset.studio} : {engine:"device", uri:pk.dataset.uri};
+    saveSettings("Change the " + slotLabel(sl) + " voice"); renderVoices(); renderVoiceCards();
+    toast(voiceName(SS.voices[sl]) + " will read the " + slotLabel(sl) + " edition, starting with the next broadcast");
+  }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.id === "keepAwake"){ L.keepAwake = t.checked; saveL(); return; }
+  if (!SS) return;
+  if (t.dataset.src){ SS.sources[t.dataset.src] = t.checked; saveSettings(); toast(t.checked ? "Added to the next broadcast" : "Removed from the next broadcast"); }
+  else if (t.dataset.topic){ SS.topics[t.dataset.topic] = t.checked; saveSettings(); }
+  else if (t.dataset.sched !== undefined){ SS.scheduler = t.checked; saveSettings(t.checked ? "Turn on automatic broadcasts" : "Turn off automatic broadcasts"); renderSettings(); setRunState(scheduleSummary(), []); toast(t.checked ? "Automatic broadcasts are on" : "Automatic broadcasts are off"); }
+  else if (t.id === "lengthSel"){ SS.length = t.value; saveSettings(); }
+  else if (t.id === "tzSel"){ SS.timezone = t.value; saveSettings(); }
+  else if (t.id === "keepSel"){ SS.keep = Number(t.value); saveSettings(); }
+  else if (t.id === "summaries"){ SS.summaries = t.checked; saveSettings(); }
+});
+document.addEventListener("input", e => {
+  const t = e.target, m = /^custom(\d)$/.exec(t.id);
+  if (t.id === "tokenInput" || t.id === "ownerInput" || t.id === "repoInput"){ L.token = $("#tokenInput").value.trim(); L.owner = $("#ownerInput").value.trim(); L.repo = $("#repoInput").value.trim(); saveL(); return; }
+  if (!SS) return;
+  if (m){ SS.custom[Number(m[1])] = t.value; saveSettings(); }
+  else if (t.id === "openaiTextModel"){ SS.openaiTextModel = t.value.trim() || "auto"; saveSettings(); }
+  else if (t.id === "openaiVoiceModel"){ SS.openaiVoiceModel = t.value.trim() || "auto"; saveSettings(); }
+  else if (t.id === "anthropicModel"){ SS.anthropicModel = t.value.trim() || "claude-haiku-5-5"; saveSettings(); }
+});
+async function connect(token, msgEl){
+  L.token = token.trim(); saveL();
+  msgEl.textContent = "Checking";
+  try{
+    const r = await gh(repoPath(""));
+    branch = r.default_branch || "main";
+    if (!r.permissions || !r.permissions.push){ msgEl.textContent = "Connected, but this token can't save changes. Give it read and write access to Contents and Actions."; }
+    else msgEl.textContent = "Connected to " + r.full_name + ".";
+    await loadSettings(); renderAll(); checkRuns();
+  }catch(e){ msgEl.textContent = e.message + ". Check the token and its repository access."; }
+}
+$("#setupSave").onclick = () => connect($("#setupToken").value, $("#setupMsg"));
+$("#checkConn").onclick = () => connect($("#tokenInput").value, $("#connMsg"));
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible"){ loadIndex(true); checkRuns(); } else clearTimeout(runWatch); });
+
+/* ---------- Start (opening the app only loads what's published; it never starts a broadcast) ---------- */
+(async function start(){
+  applyTheme(); renderSpeeds();
+  try{ CAT = await (await fetch("catalog.json", {cache:"no-store"})).json(); }catch(e){}
+  SS = connected() ? store.get("ss", null) : null;
+  renderAll();
+  if ("speechSynthesis" in window){ loadVoices(); speechSynthesis.addEventListener("voiceschanged", loadVoices); }
+  await loadIndex(false);
+  if (connected()) loadSettings();
+  setRunState(scheduleSummary(), []);
+  checkRuns();
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
