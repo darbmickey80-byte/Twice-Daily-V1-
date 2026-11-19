@@ -1,7 +1,7 @@
 {
  "scheduler": true,
  "timezone": "America/New_York",
- "length": "full",
+ "length": "standard",
  "summaries": true,
  "keep": 14,
  "sources": {
