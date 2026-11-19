@@ -82,6 +82,19 @@ def load_state():
         return {"episodes": []}
 
 
+def _clean_key(v):
+    v = (v or "").strip().strip('"').strip("'").strip()
+    if v.lower().startswith("bearer "):
+        v = v[7:].strip()
+    return re.sub(r"\s+", "", v)
+
+
+for _k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "JINA_API_KEY"):
+    if os.environ.get(_k) is not None:
+        os.environ[_k] = _clean_key(os.environ[_k])
+        if not os.environ[_k]:
+            del os.environ[_k]
+
 SETTINGS = load_settings()
 TZ = ZoneInfo(SETTINGS.get("timezone") or "America/New_York")
 SESSION = requests.Session()
@@ -394,37 +407,116 @@ def decode_gn(url):
     return None
 
 
+def clean_lines(text):
+    return "\n".join(l.strip() for l in (text or "").split("\n") if l.strip() and not JUNK_LINE.match(l.strip()))
+
+
 def extract(html, url):
-    text = trafilatura.extract(html, url=url, include_comments=False, include_tables=False, include_images=False,
-                               include_links=False, favor_precision=True, deduplicate=True) or ""
-    lines = [l.strip() for l in text.split("\n") if l.strip() and not JUNK_LINE.match(l.strip())]
-    return "\n".join(lines)
+    opts = dict(url=url, include_comments=False, include_tables=False, include_images=False, include_links=False, deduplicate=True)
+    text = trafilatura.extract(html, favor_precision=True, **opts) or ""
+    if word_count(text) < 250:
+        wider = trafilatura.extract(html, favor_recall=True, **opts) or ""
+        if word_count(wider) > word_count(text):
+            text = wider
+    return clean_lines(text)
+
+
+import threading
+STATS = {}
+_stats_lock = threading.Lock()
+_jina_lock = threading.Lock()
+_jina = {"last": 0.0, "count": 0}
+
+
+def note(link, how):
+    host = (urlparse(link).hostname or "?").replace("www.", "")
+    with _stats_lock:
+        STATS.setdefault(host, {"tried": 0, "direct": 0, "reader": 0, "failed": 0, "why": set()})
+        st = STATS[host]
+        if how == "tried":
+            st["tried"] += 1
+        elif how in ("direct", "reader"):
+            st[how] += 1
+        else:
+            st["failed"] += 1
+            st["why"].add(how)
+
+
+def jina_markdown_to_text(md):
+    body = md.split("Markdown Content:", 1)[-1]
+    out = []
+    for line in body.split("\n"):
+        line = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", line)            # images
+        line = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)        # links -> their text
+        line = re.sub(r"^[#>*\-\s]+", "", line).strip()                 # headings, quotes, bullets
+        line = re.sub(r"[*_]{1,3}([^*_]+)[*_]{1,3}", r"\1", line)
+        if len(line) < 50 and not re.search(r"[.!?\"”]$", line):         # menus, labels, buttons
+            continue
+        out.append(line)
+    return clean_lines("\n".join(out))
+
+
+def fetch_via_reader(url):
+    """Jina Reader opens the page like a browser and returns the article as text."""
+    key = os.environ.get("JINA_API_KEY")
+    gap = 0.15 if key else float(os.environ.get("JINA_GAP", 3.3))                       # free use without a key: about 18 pages a minute
+    with _jina_lock:
+        if not key and _jina["count"] >= 160:
+            return ""
+        wait = _jina["last"] + gap - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        _jina["last"] = time.time(); _jina["count"] += 1
+    headers = {"Accept": "text/plain", "X-Retain-Images": "none", "X-Timeout": "25"}
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    for attempt in range(2):
+        try:
+            r = requests.get("https://r.jina.ai/" + url, headers=headers, timeout=45)
+            if r.status_code == 429 and attempt == 0:
+                time.sleep(20); continue
+            if not r.ok:
+                return ""
+            return jina_markdown_to_text(r.text)[:14000]
+        except Exception:
+            return ""
+    return ""
 
 
 def fetch_article(url):
+    note(url, "tried")
     tries = [url]
     m = re.search(r"npr\.org/(?:\d{4}/\d{2}/\d{2}/)?((?:nx-s1-)?\d{6,})", url)
     if m:
         tries.insert(0, f"https://text.npr.org/{m.group(1)}")
+    best, why = "", "no article text"
     for u in tries:
         try:
             r = fetch(u, timeout=15)
             if "html" not in r.headers.get("content-type", "html"):
                 continue
             text = extract(r.text, r.url)
-            if text:
-                return text[:14000]
-        except Exception:
-            continue
-    return ""
+            if word_count(text) > word_count(best):
+                best = text
+            if is_full(best):
+                note(url, "direct"); return best[:14000]
+        except requests.HTTPError as e:
+            why = f"blocked ({e.response.status_code if e.response is not None else 'error'})"
+        except Exception as e:
+            why = e.__class__.__name__
+    text = fetch_via_reader(url)
+    if is_full(text):
+        note(url, "reader"); return text
+    note(url, why if not best else "too short or paywalled")
+    return best[:14000] if word_count(best) >= word_count(text) else text
 
 
 def is_full(text):
-    if not text or word_count(text) < 250:
+    if not text or word_count(text) < 200:
         return False
     if PAYWALL.search(text[-600:]) and word_count(text) < 450:
         return False
-    return len(re.findall(r"[.!?][\"”’)]?\s", text)) >= 6
+    return len(re.findall(r"[.!?][\"”’)]?\s", text)) >= 5
 
 
 def relevant(title, text, alt=None):
@@ -533,9 +625,15 @@ def stage_articles():
             sections.append({"topic": r["topic"], "stories": lst})
     found = sum(len(s["stories"]) for s in sections)
     log(f"Found full articles for {found} stories in {time.time() - started:.0f} seconds; {left_out} left out.")
+    log("Article reading by website (tried / read directly / read through Reader / failed):")
+    unreadable = []
+    for host, st in sorted(STATS.items(), key=lambda x: -x[1]["tried"]):
+        log(f"  {host}: {st['tried']} / {st['direct']} / {st['reader']} / {st['failed']}  {', '.join(sorted(st['why']))}")
+        if st["tried"] >= 2 and not st["direct"] and not st["reader"]:
+            unreadable.append(outlet_name("https://" + host))
     if not sections:
         raise SystemExit("Couldn't find full articles for any stories.")
-    save("stories.json", {"sections": sections, "leftOut": left_out, "missing": cand["missing"]})
+    save("stories.json", {"sections": sections, "leftOut": left_out, "missing": cand["missing"], "unreadable": unreadable[:6]})
 
 
 # ---------------------------------------------------------------- summaries
@@ -576,12 +674,29 @@ def list_words(a):
     return ", ".join(a[:-1]) + ", and " + a[-1]
 
 
+class ApiError(RuntimeError):
+    def __init__(self, who, status, msg, code=""):
+        super().__init__(f"{who} error {status}: {msg}")
+        self.who, self.status, self.msg, self.code = who, status, msg, code
+
+    def plain(self):
+        if self.status == 401:
+            return f"your {self.who} key was rejected ({self.msg})"
+        if self.status == 429 and ("quota" in self.code or "quota" in self.msg.lower() or "billing" in self.msg.lower()):
+            return f"your {self.who} account is out of credit; add credit in {self.who}'s billing settings"
+        if self.status == 403:
+            return f"your {self.who} key isn't allowed to do this ({self.msg}); make sure the key's permissions are set to All"
+        return f"{self.who} returned an error ({self.status}: {self.msg})"
+
+
 def api_error(r, who):
+    code = ""
     try:
-        msg = r.json().get("error", {}).get("message", "")[:200]
+        err = r.json().get("error", {})
+        msg, code = (err.get("message") or "")[:200], (err.get("code") or err.get("type") or "")
     except Exception:
         msg = r.text[:200]
-    return RuntimeError(f"{who} error {r.status_code}: {msg}")
+    return ApiError(who, r.status_code, msg, str(code))
 
 
 _oa_models = None
@@ -714,6 +829,8 @@ def stage_summaries():
     warn = []
     if data["leftOut"]:
         warn.append(f"{data['leftOut']} {'story was' if data['leftOut'] == 1 else 'stories were'} left out because no outlet had the full article.")
+    if data.get("unreadable"):
+        warn.append(f"Couldn't read articles from {list_words(data['unreadable'])}.")
     for sec in sections:
         for st in sec["stories"]:
             st["text"] = free_script(st, words)
@@ -735,17 +852,16 @@ def stage_summaries():
                     summarizer = summarizer or name
                     return n
                 except Exception as e:
-                    errors.append(f"{name}: {e}")
+                    errors.append(e.plain() if isinstance(e, ApiError) else f"{name}: {e}")
                     log(f"  summaries failed for {sec['topic']['name']} with {name}: {e}")
-                    if " 401" in str(e) or " 403" in str(e):
+                    if isinstance(e, ApiError) and (e.status in (401, 403) or (e.status == 429 and "credit" in e.plain())):
                         bad.add(name)
             return 0
         with ThreadPoolExecutor(3) as ex:
             written = sum(ex.map(work, sections))
-        if bad:
-            warn.append(f"Your {' and '.join(sorted(bad))} key was rejected. Check the key saved in GitHub.")
         if not written:
-            warn.append("Summaries couldn't be written this time, so this edition reads each article's opening paragraphs.")
+            reason = errors[0] if errors else "unknown problem"
+            warn.append(f"Summaries couldn't be written because {reason}. This edition reads each article's opening paragraphs.")
     final = []
     for sec in sections:
         stories = [s for s in sec["stories"] if not s.get("skip")][: keep_for(sec["topic"])]
@@ -859,7 +975,8 @@ def stage_audio():
         log(f"Recorded {ep['duration'] / 60:.1f} minutes of audio.")
     except Exception as e:
         log(f"Recording failed ({e}). The episode will be published without studio audio.")
-        ep["warn"].append("The studio recording failed this time, so this edition uses a phone voice.")
+        reason = e.plain() if isinstance(e, ApiError) else str(e)[:160]
+        ep["warn"].append(f"The studio recording failed because {reason}, so this edition uses a phone voice.")
     save("episode.json", ep)
 
 
