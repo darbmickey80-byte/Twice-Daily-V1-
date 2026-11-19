@@ -58,7 +58,7 @@
   },
   "pm": {
    "engine": "openai",
-   "voice": "coral"
+   "voice": "sage"
   }
  },
  "deleted": [],
