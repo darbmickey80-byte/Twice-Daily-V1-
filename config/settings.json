@@ -63,7 +63,8 @@
  },
  "deleted": [
   "ep1795115061827",
-  "ep1795113289478"
+  "ep1795113289478",
+  "ep1795112997118"
  ],
  "anthropicModel": "claude-haiku-5-5",
  "openaiTextModel": "auto",
