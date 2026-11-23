@@ -1,5 +1,5 @@
 {
- "scheduler": true,
+ "scheduler": false,
  "timezone": "America/New_York",
  "length": "standard",
  "summaries": true,
